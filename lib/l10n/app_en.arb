@@ -1,0 +1,326 @@
+{
+  "@@locale": "en",
+  "appTitle": "Tile Grove",
+  "tagline": "Find the pairs. Clear the grove.",
+  "playLevel": "Play Level {level}",
+  "@playLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "continueLevel": "Continue Level {level}",
+  "@continueLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "replayLevel": "Replay Level {level}",
+  "@replayLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "levelOfTotal": "Level {level} of {total} • {tier}",
+  "@levelOfTotal": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "allLevelsCleared": "All {total} levels cleared!",
+  "@allLevelsCleared": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "menuLevels": "Levels",
+  "menuAwards": "Awards",
+  "menuSettings": "Settings",
+  "homeInfo": "Tap two identical FREE tiles to clear them. A tile is free when nothing sits on top of it and its left or right side is open. Long-press any tile to see what is blocking it.",
+  "levelLabel": "Level {level}",
+  "@levelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "back": "Back",
+  "pauseAndSettings": "Pause & settings",
+  "tilesLeft": "{count} tiles left",
+  "@tilesLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restartLevelTitle": "Restart level?",
+  "restartLevelBody": "Your current progress on this board will be lost.",
+  "cancel": "Cancel",
+  "restart": "Restart",
+  "arrangingTiles": "Arranging tiles…",
+  "buildError": "Something went wrong building this board.",
+  "tryAgain": "Try again",
+  "boardCleared": "Board Cleared!",
+  "levelDifficulty": "Level {level} · {difficulty}",
+  "@levelDifficulty": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "difficulty": {
+        "type": "String"
+      }
+    }
+  },
+  "threeStarTip": "Clear it without Hint, Shuffle or Magic for 3 stars",
+  "newBest": "New best!",
+  "achievementUnlocked": "Achievement: {title}",
+  "@achievementUnlocked": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "finishJourney": "Finish the journey",
+  "replay": "Replay",
+  "home": "Home",
+  "noMatchesTitle": "No matches left",
+  "noMatchesBody": "None of the free tiles match right now. A free shuffle will re-deal the remaining tiles into a board that is guaranteed to be clearable.",
+  "undo": "Undo",
+  "freeShuffle": "Free shuffle",
+  "paused": "Paused",
+  "resume": "Resume",
+  "awardsSummary": "{levels} levels cleared · {stars} ★ · {matches} matches",
+  "@awardsSummary": {
+    "placeholders": {
+      "levels": {
+        "type": "int"
+      },
+      "stars": {
+        "type": "int"
+      },
+      "matches": {
+        "type": "int"
+      }
+    }
+  },
+  "play": "PLAY",
+  "tierRange": "{tier}  ·  {first}–{last}",
+  "@tierRange": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      },
+      "first": {
+        "type": "int"
+      },
+      "last": {
+        "type": "int"
+      }
+    }
+  },
+  "locked": "Locked",
+  "settingsTitle": "Settings",
+  "sectionAudio": "Sound & vibration",
+  "music": "Music",
+  "musicSubtitle": "Relaxing background melody",
+  "soundEffects": "Sound effects",
+  "soundEffectsSubtitle": "Taps, matches and celebrations",
+  "vibration": "Vibration",
+  "vibrationSubtitle": "Gentle haptic feedback",
+  "sectionDisplay": "Display",
+  "appearance": "Appearance",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "dimBlocked": "Dim blocked tiles",
+  "dimBlockedSubtitle": "Make free tiles easier to spot",
+  "reduceMotion": "Reduce motion",
+  "reduceMotionSubtitle": "Fewer animations and particles",
+  "sectionLanguage": "Language",
+  "sectionHelp": "Help",
+  "howToPlay": "How to play",
+  "howToPlaySubtitle": "Rules, boosters and stars",
+  "allSettings": "All settings",
+  "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "htpStep": "{current} of {total}",
+  "@htpStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "htpTitle1": "Match pairs",
+  "htpBody1": "Tap two tiles with the same picture to clear them. Clear every tile to win the level.",
+  "htpTitle2": "Only free tiles",
+  "htpBody2": "A tile is free when nothing sits on top of it and its left or right side is open. Blocked tiles can't be picked.",
+  "htpFree": "Free",
+  "htpBlocked": "Blocked",
+  "htpTitle3": "Peek under the pile",
+  "htpBody3": "Long-press any tile to see which tiles are blocking it. Plan ahead to free the tiles you need.",
+  "htpTitle4": "Boosters",
+  "htpBody4": "Every level gives you a fresh set of boosters.",
+  "boosterHintDesc": "Shows a pair you can match.",
+  "boosterUndoDesc": "Takes back your last match. Always free.",
+  "boosterShuffleDesc": "Re-deals the remaining tiles into a solvable board.",
+  "boosterMagicDesc": "Tap a free tile and it matches with its twin automatically.",
+  "htpTitle5": "Earn stars",
+  "htpBody5": "Clear a board without Hint, Shuffle or Magic for 3 stars. Every one of the {total} levels can be solved.",
+  "@htpBody5": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "htpNext": "Next",
+  "htpBack": "Back",
+  "htpDone": "Let's play!",
+  "htpSkip": "Skip",
+  "msgTileFree": "This tile is free to match!",
+  "msgNoBoosterLeft": "No {booster} left on this level.",
+  "@msgNoBoosterLeft": {
+    "placeholders": {
+      "booster": {
+        "type": "String"
+      }
+    }
+  },
+  "msgNoWinningMoves": "No winning moves from here — try Undo or Shuffle.",
+  "msgNothingToUndo": "Nothing to undo yet.",
+  "msgCantShuffle": "These tiles can't be rearranged into a winnable board — try Undo.",
+  "msgMagicArmed": "Tap any free tile to auto-match it.",
+  "msgTwinNotFree": "Its twin isn't free yet — try another tile.",
+  "boosterHint": "Hint",
+  "boosterUndo": "Undo",
+  "boosterShuffle": "Shuffle",
+  "boosterMagic": "Magic",
+  "tierBeginner": "Beginner",
+  "tierApprentice": "Apprentice",
+  "tierAdept": "Adept",
+  "tierExpert": "Expert",
+  "tierMaster": "Master",
+  "tierLegend": "Legend",
+  "diffEasy": "Easy",
+  "diffMedium": "Medium",
+  "diffHard": "Hard",
+  "diffExpert": "Expert",
+  "layoutSmallRectangle": "Little Box",
+  "layoutLargeRectangle": "Grand Hall",
+  "layoutPyramid": "Pyramid",
+  "layoutDoublePyramid": "Twin Peaks",
+  "layoutDiamond": "Diamond",
+  "layoutCross": "Cross",
+  "layoutButterfly": "Butterfly",
+  "layoutFlower": "Flower",
+  "layoutCircle": "Ring",
+  "layoutStaircase": "Staircase",
+  "layoutZigzag": "Zigzag",
+  "layoutLayeredSquare": "Layer Cake",
+  "layoutAsymmetricTower": "Lighthouse",
+  "layoutClusters": "Islands",
+  "layoutComplex": "Fortress",
+  "layoutProcedural": "Wilds",
+  "layoutPile": "Treasure Pile",
+  "layoutShape": "Picture",
+  "shapeLetter": "Letter {name}",
+  "@shapeLetter": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shapeNumber": "Number {name}",
+  "@shapeNumber": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shapeLittleHeart": "Little Heart",
+  "shapePlus": "Plus",
+  "shapeLittleHouse": "Little House",
+  "shapeLittleFish": "Little Fish",
+  "shapeCat": "Cat",
+  "shapeBunny": "Bunny",
+  "shapeOwl": "Owl",
+  "shapeFish": "Fish",
+  "shapeTurtle": "Turtle",
+  "shapeCrab": "Crab",
+  "shapeBear": "Bear",
+  "shapeDuck": "Duck",
+  "shapeButterfly": "Butterfly",
+  "shapeSnail": "Snail",
+  "shapeHeart": "Heart",
+  "shapeStar": "Star",
+  "shapeHouse": "House",
+  "shapeTree": "Tree",
+  "shapeMushroom": "Mushroom",
+  "shapeUmbrella": "Umbrella",
+  "shapeBell": "Bell",
+  "shapeCrown": "Crown",
+  "shapeGem": "Gem",
+  "shapeRocket": "Rocket",
+  "shapeAnchor": "Anchor",
+  "shapeApple": "Apple",
+  "shapeHourglass": "Hourglass",
+  "shapeSailboat": "Sailboat",
+  "shapeSun": "Sun",
+  "shapeSpade": "Spade",
+  "shapeKey": "Key",
+  "shapeCup": "Cup",
+  "themeFruits": "Fruit Market",
+  "themeAnimals": "Animal Friends",
+  "themeSweets": "Sweet Shop",
+  "themeGarden": "Secret Garden",
+  "themeOcean": "Deep Blue",
+  "themeFantasy": "Fantasy Realm",
+  "themeObjects": "Everyday Treasures",
+  "achFirstClearTitle": "First Bloom",
+  "achFirstClearDesc": "Clear your first board.",
+  "achTenLevelsTitle": "Rising Star",
+  "achTenLevelsDesc": "Clear 10 levels.",
+  "achFiftyLevelsTitle": "Tile Master",
+  "achFiftyLevelsDesc": "Clear 50 levels.",
+  "achHundredLevelsTitle": "Grove Legend",
+  "achHundredLevelsDesc": "Clear 100 levels.",
+  "achPerfectTenTitle": "Perfectionist",
+  "achPerfectTenDesc": "Earn 3 stars on 10 levels.",
+  "achSpeedsterTitle": "Speedster",
+  "achSpeedsterDesc": "Clear a board in under 60 seconds.",
+  "achThousandMatchesTitle": "Collector",
+  "achThousandMatchesDesc": "Make 1,000 matches.",
+  "achPureSkillTitle": "Pure Skill",
+  "achPureSkillDesc": "Clear a 4+ layer board without boosters."
+}
