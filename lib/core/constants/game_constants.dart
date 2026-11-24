@@ -4,6 +4,9 @@ class GameConstants {
 
   static const String appName = 'Tile Grove';
 
+  /// Size of the campaign.
+  static const int totalLevels = 1000;
+
   // Animation timings.
   static const Duration selectDuration = Duration(milliseconds: 140);
   static const Duration removeDuration = Duration(milliseconds: 300);
@@ -23,6 +26,6 @@ class GameConstants {
 
   /// Horizontal share of the 3D edge (the rest shows along the bottom).
   static const double tileSideRatio = 0.0;
-  static const double minTileWidth = 38;
-  static const double maxTileWidth = 96;
+  static const double minTileWidth = 34;
+  static const double maxTileWidth = 58;
 }

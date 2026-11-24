@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/game_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/common.dart';
 import '../../progress/data/progress_repository.dart';
@@ -13,7 +16,10 @@ class LevelSelectScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final p = ref.watch(progressProvider);
-    final shown = ((p.highestUnlocked + 20) / 10).ceil() * 10;
+    final shown = math.min(
+      GameConstants.totalLevels,
+      ((p.highestUnlocked + 20) / 10).ceil() * 10,
+    );
 
     final slivers = <Widget>[];
     final tiers = DifficultyTier.values;

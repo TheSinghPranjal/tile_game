@@ -29,7 +29,7 @@ class LevelGenerationException implements Exception {
 /// 3. legal removal sequence (positions)  6. certificate replay + difficulty
 class LevelGenerator {
   /// Bump whenever generation output changes, so saved games are invalidated.
-  static const int version = 4;
+  static const int version = 6;
 
   final LevelSolver solver;
   final RemovalSequenceGenerator sequencer;
@@ -113,7 +113,7 @@ class LevelGenerator {
         levelNumber: config.levelNumber,
         geometry: geometry,
         symbols: symbols,
-        templateName: config.template.displayName,
+        templateName: config.displayName,
         themeIndex: config.theme.index,
         certificate: LevelCertificate(
           levelId: config.levelNumber,
@@ -184,6 +184,7 @@ class LevelGenerator {
       tileHeight: params.tileHeight,
       overlap: params.overlap,
       maxTiles: config.maxTiles,
+      art: params.art,
     );
     List<TilePosition> tiles = const [];
     // Adjust the footprint (not the layer count) to land inside the
@@ -198,10 +199,13 @@ class LevelGenerator {
       tileHeight: p.tileHeight,
       overlap: p.overlap,
       maxTiles: 1 << 20,
+      art: p.art,
     );
     p = full;
     for (var i = 0; i < 12; i++) {
       tiles = config.template.build(p, rng);
+      // Picture silhouettes have a fixed footprint.
+      if (p.art != null && config.template == LayoutTemplate.shape) break;
       if (tiles.length > config.maxTiles && (p.cols > 3 || p.rows > 3)) {
         p = p.cols >= p.rows && p.cols > 3
             ? p.copyWith(cols: p.cols - 1)
@@ -217,17 +221,7 @@ class LevelGenerator {
     if (tiles.length > config.maxTiles) {
       // Final safety net: let the template trim its top layers.
       tiles = config.template.build(
-        LayoutParams(
-          cols: p.cols,
-          rows: p.rows,
-          layers: p.layers,
-          staggerRows: p.staggerRows,
-          stackMode: p.stackMode,
-          tileWidth: p.tileWidth,
-          tileHeight: p.tileHeight,
-          overlap: p.overlap,
-          maxTiles: config.maxTiles,
-        ),
+        p.copyWith(maxTiles: config.maxTiles),
         rng,
       );
     }

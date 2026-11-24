@@ -83,7 +83,9 @@ class GameController extends Notifier<GameViewState> {
       _startClock();
       _setPhaseSoon(GamePhase.playing, const Duration(milliseconds: 350));
       _checkNoMoves();
-      ref.read(levelRepositoryProvider).prefetch(levelNumber + 1);
+      if (levelNumber < GameConstants.totalLevels) {
+        ref.read(levelRepositoryProvider).prefetch(levelNumber + 1);
+      }
     } catch (e, st) {
       debugPrint('Level load failed: $e\n$st');
       if (!ref.mounted || token != _loadToken) return;

@@ -71,7 +71,10 @@ void main() {
     ];
     expect(covered, isNotEmpty);
     final under = covered.first;
-    final hit = layout.hitTest(layout.tileRect(under).center, board.removed)!;
+    final top = board.geometry.coveredBy[under].first;
+    final overlap =
+        layout.tileRect(under).intersect(layout.tileRect(top)).center;
+    final hit = layout.hitTest(overlap, board.removed)!;
     expect(hit, isNot(under));
     expect(board.geometry.tiles[hit].layer,
         greaterThan(board.geometry.tiles[under].layer));

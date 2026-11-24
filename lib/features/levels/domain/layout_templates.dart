@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../../../core/utils/seeded_random.dart';
 import '../../game/domain/entities/tile_position.dart';
+import 'shape_library.dart';
 
 /// How each layer is derived from the layer beneath it.
 enum StackMode {
@@ -49,6 +50,9 @@ class LayoutParams {
   /// Upper bound on tile count; the builder trims the top layers to respect it.
   final int maxTiles;
 
+  /// Picture silhouette used by [LayoutTemplate.shape].
+  final ShapeArt? art;
+
   const LayoutParams({
     required this.cols,
     required this.rows,
@@ -59,9 +63,11 @@ class LayoutParams {
     this.tileHeight = 1,
     this.overlap = 0.5,
     this.maxTiles = 160,
+    this.art,
   });
 
-  LayoutParams copyWith({int? cols, int? rows, int? layers}) => LayoutParams(
+  LayoutParams copyWith({int? cols, int? rows, int? layers, int? maxTiles}) =>
+      LayoutParams(
         cols: cols ?? this.cols,
         rows: rows ?? this.rows,
         layers: layers ?? this.layers,
@@ -70,7 +76,8 @@ class LayoutParams {
         tileWidth: tileWidth,
         tileHeight: tileHeight,
         overlap: overlap,
-        maxTiles: maxTiles,
+        maxTiles: maxTiles ?? this.maxTiles,
+        art: art,
       );
 }
 
@@ -92,7 +99,11 @@ enum LayoutTemplate {
   clusters('Islands', StackMode.halfOffset),
   complex('Fortress', StackMode.halfOffset),
   procedural('Wilds', StackMode.halfOffset),
-  pile('Treasure Pile', StackMode.quarterOffset);
+  pile('Treasure Pile', StackMode.quarterOffset),
+
+  /// Letters, numbers, animals and objects from [ShapeLibrary]
+  /// (the silhouette comes from [LayoutParams.art]).
+  shape('Picture', StackMode.halfOffset);
 
   final String displayName;
   final StackMode defaultStack;
@@ -113,8 +124,9 @@ class _LayoutBuilder {
 
   _LayoutBuilder(this.t, this.p, this.rng);
 
-  int get cols => p.cols;
-  int get rows => p.rows;
+  ShapeArt? get art => t == LayoutTemplate.shape ? p.art : null;
+  int get cols => art?.width ?? p.cols;
+  int get rows => art?.height ?? p.rows;
   double get cx => (cols - 1) / 2;
   double get cy => (rows - 1) / 2;
 
@@ -128,6 +140,7 @@ class _LayoutBuilder {
           : mode;
       final next = _nextLayer(layers.last, m, k)
         ..removeWhere((pos) => !_upperAllowed(k, pos));
+      if (art != null) _dropLoneTiles(next);
       if (next.isEmpty) break;
       layers.add(next);
     }
@@ -142,6 +155,12 @@ class _LayoutBuilder {
   // ---------------------------------------------------------------- masks --
 
   Set<(int, int)> _baseMask() {
+    final a = art;
+    if (a != null) return a.cells;
+    if (t == LayoutTemplate.shape) {
+      // No art supplied: fall back to a plain block.
+      return {for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) (c, r)};
+    }
     final cells = <(int, int)>{};
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
@@ -163,6 +182,7 @@ class _LayoutBuilder {
       case LayoutTemplate.pyramid:
       case LayoutTemplate.layeredSquare:
       case LayoutTemplate.procedural:
+      case LayoutTemplate.shape:
         return true;
       case LayoutTemplate.doublePyramid:
         final mid = cols ~/ 2;
@@ -267,7 +287,7 @@ class _LayoutBuilder {
   /// Cell (c, r) -> quarter units; staggered rows shift by half a tile.
   Set<(int, int)> _toUnits(Set<(int, int)> cells) => {
         for (final (c, r) in cells)
-          (4 * c + (p.staggerRows && r.isOdd ? 2 : 0), 4 * r),
+          (4 * c + (p.staggerRows && art == null && r.isOdd ? 2 : 0), 4 * r),
       };
 
   /// Quarter-unit cells occupied by a layer (each tile fills 4x4 cells).
@@ -325,6 +345,21 @@ class _LayoutBuilder {
           k,
         );
     }
+  }
+
+  /// Pictures read cleaner when upper layers form clusters: a tile with no
+  /// side-by-side or stacked neighbour on its own layer is removed.
+  static void _dropLoneTiles(Set<(int, int)> layer) {
+    bool near((int, int) a) {
+      for (final b in layer) {
+        if (b == a) continue;
+        final dx = (b.$1 - a.$1).abs(), dy = (b.$2 - a.$2).abs();
+        if (dx <= 4 && dy <= 4) return true;
+      }
+      return false;
+    }
+
+    layer.removeWhere((t) => !near(t));
   }
 
   /// Keeps horizontal half-offset layers from covering entire thin rows,

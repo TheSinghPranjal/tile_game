@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/game_constants.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/common.dart';
 import '../../../progress/data/progress_repository.dart';
@@ -47,6 +48,7 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
   @override
   Widget build(BuildContext context) {
     final r = widget.reward;
+    final isFinal = widget.level >= GameConstants.totalLevels;
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 28),
       child: Padding(
@@ -54,9 +56,10 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('🎉', style: TextStyle(fontSize: 46)),
+            Text(isFinal ? '🏆' : '🎉', style: const TextStyle(fontSize: 46)),
             const SizedBox(height: 4),
-            Text('Board Cleared!',
+            Text(isFinal ? 'All ${GameConstants.totalLevels} levels cleared!' : 'Board Cleared!',
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 2),
             Text('Level ${widget.level} · ${widget.difficultyLabel}',
@@ -129,8 +132,11 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: widget.onNext,
-                icon: const Icon(Icons.play_arrow_rounded),
-                label: Text('Level ${widget.level + 1}'),
+                icon: Icon(isFinal
+                    ? Icons.emoji_events_rounded
+                    : Icons.play_arrow_rounded),
+                label: Text(
+                    isFinal ? 'Finish the journey' : 'Level ${widget.level + 1}'),
               ),
             ),
             const SizedBox(height: 6),

@@ -1,3 +1,4 @@
+import '../../../core/constants/game_constants.dart';
 
 /// Unfinished board persisted between app sessions.
 class SavedGame {
@@ -50,6 +51,9 @@ class PlayerProgress {
   final int totalMatches;
   final int bestTimeMs;
   final SavedGame? savedGame;
+
+  /// True once the final campaign level has been cleared.
+  bool get allLevelsCleared => stars.containsKey(GameConstants.totalLevels);
 
   const PlayerProgress({
     required this.highestUnlocked,

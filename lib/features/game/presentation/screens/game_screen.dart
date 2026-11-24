@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/game_constants.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/common.dart';
 import '../../../boosters/domain/booster.dart';
@@ -136,7 +137,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _dialogOpen = false;
     if (!mounted) return;
     switch (next) {
-      case 'next':
+      case 'next' when s.levelNumber < GameConstants.totalLevels:
         _controller.start(s.levelNumber + 1);
       case 'replay':
         _controller.start(s.levelNumber);

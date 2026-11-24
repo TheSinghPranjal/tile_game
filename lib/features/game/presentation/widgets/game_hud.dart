@@ -20,13 +20,21 @@ class GameTopBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final level = ref.watch(gameControllerProvider.select((s) => s.levelNumber));
-    final progress = ref.watch(gameControllerProvider.select((s) => s.progress));
-    final elapsed = ref.watch(gameControllerProvider.select((s) => s.elapsedMs));
-    final template =
-        ref.watch(gameControllerProvider.select((s) => s.level?.templateName));
-    final remaining =
-        ref.watch(gameControllerProvider.select((s) => s.remainingTiles));
+    final level = ref.watch(
+      gameControllerProvider.select((s) => s.levelNumber),
+    );
+    final progress = ref.watch(
+      gameControllerProvider.select((s) => s.progress),
+    );
+    final elapsed = ref.watch(
+      gameControllerProvider.select((s) => s.elapsedMs),
+    );
+    final template = ref.watch(
+      gameControllerProvider.select((s) => s.level?.templateName),
+    );
+    final remaining = ref.watch(
+      gameControllerProvider.select((s) => s.remainingTiles),
+    );
 
     const plum = Color(0xFF4A1C7A);
     return Padding(
@@ -48,59 +56,90 @@ class GameTopBar extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: const [
                   BoxShadow(
-                      color: Color(0x26000000), blurRadius: 12, offset: Offset(0, 4)),
+                    color: Color(0x26000000),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(children: [
-                    // Left side yields space first: the layout name
-                    // truncates, then "Level N" scales down if needed.
-                    Expanded(
-                      child: Row(children: [
-                        Flexible(
-                          flex: 3,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child:
-                                Text('Level $level', style: fredoka(19, 700, plum)),
+                  Row(
+                    children: [
+                      // Left side yields space first: the layout name
+                      // truncates, then "Level N" scales down if needed.
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, box) => Row(
+                            children: [
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: box.maxWidth * 0.6,
+                                ),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Level $level',
+                                    style: fredoka(19, 700, plum),
+                                  ),
+                                ),
+                              ),
+                              if (template != null) ...[
+                                Container(
+                                  width: 1.5,
+                                  height: 16,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  color: const Color(0xFFD9D0E4),
+                                ),
+                                Flexible(
+                                  child: Text(
+                                    template,
+                                    overflow: TextOverflow.ellipsis,
+                                    softWrap: false,
+                                    style: fredoka(
+                                      13.5,
+                                      500,
+                                      const Color(0xFF8A7F99),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                        if (template != null) ...[
-                          Container(
-                            width: 1.5,
-                            height: 16,
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            color: const Color(0xFFD9D0E4),
-                          ),
-                          Flexible(
-                            flex: 2,
-                            child: Text(template,
-                                overflow: TextOverflow.ellipsis,
-                                softWrap: false,
-                                style:
-                                    fredoka(13.5, 500, const Color(0xFF8A7F99))),
-                          ),
-                        ],
-                      ]),
-                    ),
-                    const SizedBox(width: 8),
-                    Text('$remaining',
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$remaining',
                         style: fredoka(12.5, 600, const Color(0xFF8A7F99))
-                            .copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
-                    const SizedBox(width: 2),
-                    const Icon(Icons.grid_view_rounded,
-                        size: 12, color: Color(0xFF8A7F99)),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.timer_outlined, size: 17, color: plum),
-                    const SizedBox(width: 3),
-                    Text(formatClock(elapsed),
-                        style: fredoka(16, 700, plum)
-                            .copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
-                  ]),
+                            .copyWith(
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.grid_view_rounded,
+                        size: 12,
+                        color: Color(0xFF8A7F99),
+                      ),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.timer_outlined, size: 17, color: plum),
+                      const SizedBox(width: 3),
+                      Text(
+                        formatClock(elapsed),
+                        style: fredoka(16, 700, plum).copyWith(
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 7),
                   _ProgressTrack(progress: progress),
                 ],
@@ -127,47 +166,47 @@ class _ProgressTrack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        height: 13,
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFE9DF),
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: const Color(0xFFE2DACD)),
-        ),
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(end: progress),
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOut,
-          builder: (_, v, _) => Align(
-            alignment: Alignment.centerLeft,
-            child: FractionallySizedBox(
-              widthFactor: v.clamp(0.0, 1.0),
-              heightFactor: 1,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(99),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF7BE36A), Color(0xFF2FB344)],
-                  ),
-                ),
-                foregroundDecoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(99),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.center,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.45),
-                      Colors.white.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
+    height: 13,
+    padding: const EdgeInsets.all(2),
+    decoration: BoxDecoration(
+      color: const Color(0xFFEFE9DF),
+      borderRadius: BorderRadius.circular(99),
+      border: Border.all(color: const Color(0xFFE2DACD)),
+    ),
+    child: TweenAnimationBuilder<double>(
+      tween: Tween(end: progress),
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOut,
+      builder: (_, v, _) => Align(
+        alignment: Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: v.clamp(0.0, 1.0),
+          heightFactor: 1,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(99),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF7BE36A), Color(0xFF2FB344)],
+              ),
+            ),
+            foregroundDecoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(99),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.center,
+                colors: [
+                  Colors.white.withValues(alpha: 0.45),
+                  Colors.white.withValues(alpha: 0),
+                ],
               ),
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 /// Wooden booster tray (image-4 style).
@@ -176,18 +215,42 @@ class BoosterBar extends ConsumerWidget {
   const BoosterBar({super.key, required this.onBooster});
 
   static const _icons = {
-    BoosterType.hint: (Icons.lightbulb_rounded, [Color(0xFFFFE066), Color(0xFFFFA000)]),
-    BoosterType.undo: (Icons.undo_rounded, [Color(0xFFFFC266), Color(0xFFF57C00)]),
-    BoosterType.shuffle: (Icons.shuffle_rounded, [Color(0xFF4FC3F7), Color(0xFF1E5FE8)]),
-    BoosterType.magic: (Icons.auto_fix_high_rounded, [Color(0xFFC18CFF), Color(0xFF7232E0)]),
+    BoosterType.hint: (
+      Icons.lightbulb_rounded,
+      [Color(0xFFFFE066), Color(0xFFFFA000)],
+    ),
+    BoosterType.undo: (
+      Icons.undo_rounded,
+      [Color(0xFFFFC266), Color(0xFFF57C00)],
+    ),
+    BoosterType.shuffle: (
+      Icons.shuffle_rounded,
+      [Color(0xFF4FC3F7), Color(0xFF1E5FE8)],
+    ),
+    BoosterType.magic: (
+      Icons.auto_fix_high_rounded,
+      [Color(0xFFC18CFF), Color(0xFF7232E0)],
+    ),
   };
 
   /// Button fill (top, bottom) and base/depth colour per booster.
   static const _fills = {
-    BoosterType.hint: ([Color(0xFFFFEDB0), Color(0xFFF8C24E)], Color(0xFFD99528)),
-    BoosterType.undo: ([Color(0xFFFFE3C2), Color(0xFFF5B670)], Color(0xFFD38A3E)),
-    BoosterType.shuffle: ([Color(0xFFDDEEFF), Color(0xFF86BDF6)], Color(0xFF4C86D6)),
-    BoosterType.magic: ([Color(0xFFF0E2FF), Color(0xFFC2A0F6)], Color(0xFF8E63D6)),
+    BoosterType.hint: (
+      [Color(0xFFFFEDB0), Color(0xFFF8C24E)],
+      Color(0xFFD99528),
+    ),
+    BoosterType.undo: (
+      [Color(0xFFFFE3C2), Color(0xFFF5B670)],
+      Color(0xFFD38A3E),
+    ),
+    BoosterType.shuffle: (
+      [Color(0xFFDDEEFF), Color(0xFF86BDF6)],
+      Color(0xFF4C86D6),
+    ),
+    BoosterType.magic: (
+      [Color(0xFFF0E2FF), Color(0xFFC2A0F6)],
+      Color(0xFF8E63D6),
+    ),
   };
 
   @override
@@ -224,11 +287,19 @@ class BoosterBar extends ConsumerWidget {
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFFD9A262), Color(0xFFB0703A), Color(0xFF94592A)],
+                colors: [
+                  Color(0xFFD9A262),
+                  Color(0xFFB0703A),
+                  Color(0xFF94592A),
+                ],
               ),
               border: Border.all(color: const Color(0xFF6E3B17), width: 3),
               boxShadow: const [
-                BoxShadow(color: Color(0x55000000), blurRadius: 14, offset: Offset(0, 6)),
+                BoxShadow(
+                  color: Color(0x55000000),
+                  blurRadius: 14,
+                  offset: Offset(0, 6),
+                ),
               ],
             ),
             foregroundDecoration: BoxDecoration(
@@ -237,12 +308,20 @@ class BoosterBar extends ConsumerWidget {
             ),
             child: CustomPaint(
               painter: const _WoodGrainPainter(),
-              child: Row(children: [
-                button(BoosterType.hint, active: s.phase == GamePhase.hintActive),
-                button(BoosterType.undo, enabled: s.session?.canUndo ?? false),
-                button(BoosterType.shuffle),
-                button(BoosterType.magic, active: s.magicArmed),
-              ]),
+              child: Row(
+                children: [
+                  button(
+                    BoosterType.hint,
+                    active: s.phase == GamePhase.hintActive,
+                  ),
+                  button(
+                    BoosterType.undo,
+                    enabled: s.session?.canUndo ?? false,
+                  ),
+                  button(BoosterType.shuffle),
+                  button(BoosterType.magic, active: s.magicArmed),
+                ],
+              ),
             ),
           ),
           Positioned(
@@ -288,7 +367,14 @@ class _WoodGrainPainter extends CustomPainter {
       canvas.drawPath(
         Path()
           ..moveTo(0, y)
-          ..cubicTo(size.width * 0.3, y - 3, size.width * 0.6, y + 3, size.width, y - 1),
+          ..cubicTo(
+            size.width * 0.3,
+            y - 3,
+            size.width * 0.6,
+            y + 3,
+            size.width,
+            y - 1,
+          ),
         p,
       );
     }
@@ -390,8 +476,10 @@ class _BoosterButtonState extends State<_BoosterButton> {
                       const SizedBox(height: 2),
                       FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text(w.label,
-                            style: fredoka(15, 700, const Color(0xFF3D1466))),
+                        child: Text(
+                          w.label,
+                          style: fredoka(15, 700, const Color(0xFF3D1466)),
+                        ),
                       ),
                     ],
                   ),
@@ -414,11 +502,17 @@ class _BoosterButtonState extends State<_BoosterButton> {
                       ),
                       border: Border.all(color: Colors.white, width: 2.2),
                       boxShadow: const [
-                        BoxShadow(color: Color(0x40000000), blurRadius: 4, offset: Offset(0, 2)),
+                        BoxShadow(
+                          color: Color(0x40000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
                       ],
                     ),
-                    child: Text('${w.count}',
-                        style: fredoka(13, 700, Colors.white, height: 1)),
+                    child: Text(
+                      '${w.count}',
+                      style: fredoka(13, 700, Colors.white, height: 1),
+                    ),
                   ),
                 ),
               ],

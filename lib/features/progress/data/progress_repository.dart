@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/constants/game_constants.dart';
 import '../../../core/storage.dart';
 import '../../achievements/domain/achievements.dart';
 import '../domain/player_progress.dart';
@@ -76,8 +78,10 @@ class ProgressNotifier extends Notifier<PlayerProgress> {
     final stars = starsFor(assistsUsed);
     final prev = state.stars[level] ?? 0;
     var next = state.copyWith(
-      highestUnlocked:
-          level + 1 > state.highestUnlocked ? level + 1 : state.highestUnlocked,
+      highestUnlocked: math.min(
+        GameConstants.totalLevels,
+        math.max(level + 1, state.highestUnlocked),
+      ),
       stars: {...state.stars, level: stars > prev ? stars : prev},
       totalMatches: state.totalMatches + matches,
       bestTimeMs: state.bestTimeMs == 0 ||

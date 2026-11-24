@@ -1,8 +1,22 @@
 # Tile Grove
 
 A layered **two-tile** matching puzzle game for Android and iOS, built with Flutter and Riverpod.
-Tap two identical **free** tiles to clear them. Every board is generated procedurally and
-**proven solvable** before you see it.
+Tap two identical **free** tiles to clear them. The campaign has **1,000 levels**, and every
+board is generated procedurally and **proven solvable** before you see it.
+
+About two levels in three are **pictures**: the tiles are arranged as a letter, a number, an
+animal or an object (heart, star, cat, owl, rocket, letter X, number 8 and so on; 62 shapes in
+`lib/features/levels/domain/shape_library.dart`). Shapes are drawn as ASCII art, so adding one is
+a few lines.
+
+| Tier | Levels |
+|---|---|
+| Beginner | 1–10 |
+| Apprentice | 11–40 |
+| Adept | 41–120 |
+| Expert | 121–300 |
+| Master | 301–600 |
+| Legend | 601–1000 |
 
 A tile is *free* when:
 
@@ -25,6 +39,7 @@ flutter test                                  # engine and widget tests (fast)
 flutter test test/batch --run-skipped --tags batch          # 10,000-board batch (~10 min)
 BATCH_COUNT=500 flutter test test/batch --run-skipped --tags batch
 dart run tool/difficulty_report.dart 1 300   # print the difficulty curve for rebalancing
+dart run tool/shape_check.dart 1 1000        # generate every level; lists picture names and fallbacks
 ```
 
 The batch run writes `build/batch_summary.json`. Any failing board is written in full,
@@ -37,7 +52,7 @@ Generation is deterministic: the same level number always produces the same boar
 
 `LevelGenerator` (`lib/features/game/domain/algorithms/level_generator.dart`):
 
-1. **Geometry** comes from one of 17 parametric templates (`LayoutTemplate`). Upper layers
+1. **Geometry** comes from one of 17 parametric templates or a picture (`LayoutTemplate.shape`). Upper layers
    are placed only where the layer below fully supports them. This works for aligned,
    staggered and half-offset grids.
 2. **Geometry validation** (`GeometryValidator`): unique IDs, valid coordinates, no

@@ -39,7 +39,7 @@ class BoardLayout {
   );
 
   /// Fits [g] into [viewport], honouring a minimum readable tile size.
-  factory BoardLayout.fit(BoardGeometry g, Size viewport, {double padding = 10}) {
+  factory BoardLayout.fit(BoardGeometry g, Size viewport, {double padding = 16}) {
     const aspect = GameConstants.tileAspect;
     final depth = math.max(0, g.layerCount - 1);
     final extraW = depth * GameConstants.layerShiftX.abs() +

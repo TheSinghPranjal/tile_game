@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/game_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/decor.dart';
 import '../../achievements/presentation/achievements_screen.dart';
-import '../../game/domain/entities/tile_symbol.dart';
 import '../../game/presentation/screens/game_screen.dart';
 import '../../levels/data/level_repository.dart';
 import '../../levels/domain/level_config.dart';
@@ -83,7 +83,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final p = ref.watch(progressProvider);
     final current = p.savedGame?.levelNumber ?? p.highestUnlocked;
     final tier = DifficultyTier.forLevel(current);
-    final theme = TileTheme.values[((current - 1) ~/ 5) % TileTheme.values.length];
     final padding = MediaQuery.paddingOf(context);
 
     return Scaffold(
@@ -139,8 +138,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         _PlayButton(
                           label: p.savedGame != null
                               ? 'Continue Level $current'
-                              : 'Play Level $current',
-                          sublabel: '${tier.displayName} • ${theme.displayName}',
+                              : p.allLevelsCleared
+                                  ? 'Replay Level $current'
+                                  : 'Play Level $current',
+                          sublabel: p.allLevelsCleared && p.savedGame == null
+                              ? 'All ${GameConstants.totalLevels} levels cleared!'
+                              : 'Level $current of ${GameConstants.totalLevels} • ${tier.displayName}',
                           onTap: () => _play(current),
                         ),
                         const SizedBox(height: 20),

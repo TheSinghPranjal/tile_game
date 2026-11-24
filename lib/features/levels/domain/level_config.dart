@@ -1,17 +1,19 @@
 import 'dart:math' as math;
 
+import '../../../core/constants/game_constants.dart';
 import '../../../core/utils/seeded_random.dart';
 import '../../game/domain/algorithms/removal_sequence_generator.dart';
 import '../../game/domain/entities/tile_symbol.dart';
 import 'layout_templates.dart';
+import 'shape_library.dart';
 
 enum DifficultyTier {
   beginner(1, 'Beginner'),
   apprentice(11, 'Apprentice'),
-  adept(26, 'Adept'),
-  expert(51, 'Expert'),
-  master(101, 'Master'),
-  legend(201, 'Legend');
+  adept(41, 'Adept'),
+  expert(121, 'Expert'),
+  master(301, 'Master'),
+  legend(601, 'Legend');
 
   final int firstLevel;
   final String displayName;
@@ -62,12 +64,33 @@ class LevelConfig {
     this.minInitialPairs = 1,
   });
 
+  /// The game has a fixed campaign of this many levels.
+  static const int maxLevel = GameConstants.totalLevels;
+
+  /// Name shown in the top bar: the picture's title or the layout's name.
+  String get displayName {
+    final art = params.art;
+    return template == LayoutTemplate.shape && art != null
+        ? art.title
+        : template.displayName;
+  }
+
   LevelConfig copyWith({LayoutTemplate? template, int? levelNumber}) =>
       LevelConfig(
         levelNumber: levelNumber ?? this.levelNumber,
         tier: tier,
         template: template ?? this.template,
-        params: params,
+        params: template == LayoutTemplate.shape && params.art == null
+            ? LayoutParams(
+                cols: params.cols,
+                rows: params.rows,
+                layers: params.layers,
+                stackMode: params.stackMode,
+                maxTiles: params.maxTiles,
+                art: _pictures[(levelNumber ?? this.levelNumber) %
+                    _pictures.length],
+              )
+            : params,
         minTiles: minTiles,
         maxTiles: maxTiles,
         symbolPoolSize: symbolPoolSize,
@@ -77,9 +100,90 @@ class LevelConfig {
         minInitialPairs: minInitialPairs,
       );
 
-  /// Deterministic progression curve.
+  /// Deterministic progression curve. Many levels are "pictures": the tiles
+  /// are arranged as a letter, number, animal or object.
   factory LevelConfig.forLevel(int level) {
     assert(level >= 1);
+    final base = LevelConfig._layoutLevel(level);
+    final rng = SeededRandom(SeededRandom.seedFrom([level, 0x5BA9E]));
+    final art = _pictureFor(level, base.tier, rng);
+    if (art == null) return base;
+
+    int between(int lo, int hi) => lo + rng.nextInt(hi - lo + 1);
+    final (layers, dense) = switch (base.tier) {
+      DifficultyTier.beginner => (2, 0.0),
+      DifficultyTier.apprentice => (between(2, 3), 0.0),
+      DifficultyTier.adept => (3, 0.25),
+      DifficultyTier.expert => (between(3, 4), 0.45),
+      DifficultyTier.master => (between(4, 5), 0.6),
+      DifficultyTier.legend => (between(5, 6), 0.7),
+    };
+    // Letters and numbers have 2-tile strokes, so they only ever get two or
+    // three layers: they act as lighter "breather" boards between deep ones.
+    final StackMode stack;
+    if (rng.nextBool(dense)) {
+      stack = StackMode.quarterOffset;
+    } else if (base.tier.index >= DifficultyTier.adept.index &&
+        rng.nextBool(0.4)) {
+      stack = StackMode.alternate;
+    } else {
+      stack = StackMode.halfOffset;
+    }
+    return LevelConfig(
+      levelNumber: level,
+      tier: base.tier,
+      template: LayoutTemplate.shape,
+      params: LayoutParams(
+        cols: art.width,
+        rows: art.height,
+        layers: layers,
+        stackMode: stack,
+        art: art,
+      ),
+      minTiles: 4,
+      // Always room for at least two full layers of the picture.
+      maxTiles: base.tier == DifficultyTier.beginner
+          ? 48
+          : math.max(base.maxTiles, art.cellCount * 2),
+      symbolPoolSize: base.symbolPoolSize,
+      theme: base.theme,
+      preference: base.preference,
+      minPlayoutSuccess: base.minPlayoutSuccess,
+      minInitialPairs: base.tier == DifficultyTier.beginner
+          ? 2
+          : base.minInitialPairs,
+    );
+  }
+
+  static const List<ShapeArt> _pictures = [
+    ...ShapeLibrary.objects,
+    ...ShapeLibrary.animals,
+    ...ShapeLibrary.letters,
+    ...ShapeLibrary.numbers,
+  ];
+
+  /// Picks a picture for [level], or null for a classic layout. Pictures
+  /// cycle through the categories so neighbouring levels feel different.
+  static ShapeArt? _pictureFor(int level, DifficultyTier tier, SeededRandom rng) {
+    if (level <= 2) return null;
+    if (tier == DifficultyTier.beginner) {
+      if (level.isEven) return null;
+      return ShapeLibrary.small[(level ~/ 2) % ShapeLibrary.small.length];
+    }
+    // Roughly two levels in three are pictures.
+    if (level % 3 == 0) return null;
+    const groups = [
+      ShapeLibrary.objects,
+      ShapeLibrary.animals,
+      ShapeLibrary.letters,
+      ShapeLibrary.numbers,
+    ];
+    final group = groups[(level ~/ 3) % groups.length];
+    return group[(level * 7 + rng.nextInt(3)) % group.length];
+  }
+
+  /// Classic (non-picture) layout for [level].
+  factory LevelConfig._layoutLevel(int level) {
     final rng = SeededRandom(SeededRandom.seedFrom([level, 0xC0FFEE]));
     final tier = DifficultyTier.forLevel(level);
     final theme = TileTheme.values[((level - 1) ~/ 5) % TileTheme.values.length];

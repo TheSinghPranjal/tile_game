@@ -29,12 +29,20 @@ class _BurstData {
   const _BurstData(this.id, this.center, this.color, this.size);
 }
 
-class _BoardViewState extends ConsumerState<BoardView> {
+class _BoardViewState extends ConsumerState<BoardView>
+    with SingleTickerProviderStateMixin {
   final _shakeNonce = <int, int>{};
   final _strongShake = <int, bool>{};
   final _revealNonce = <int, int>{};
   final _bursts = <_BurstData>[];
   final _transform = TransformationController();
+
+  /// Drives the deal-in animation when a new board appears.
+  late final AnimationController _intro = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+    value: 1,
+  );
   int _burstId = 0;
   BoardLayout? _layout;
   (BoardGeometry, Size)? _layoutKey;
@@ -42,6 +50,7 @@ class _BoardViewState extends ConsumerState<BoardView> {
   @override
   void dispose() {
     _transform.dispose();
+    _intro.dispose();
     super.dispose();
   }
 
@@ -49,6 +58,13 @@ class _BoardViewState extends ConsumerState<BoardView> {
     if (_layoutKey == null ||
         !identical(_layoutKey!.$1, g) ||
         _layoutKey!.$2 != size) {
+      final newBoard = _layoutKey == null || !identical(_layoutKey!.$1, g);
+      if (newBoard && !ref.read(settingsProvider).reduceMotion) {
+        _intro.value = 0;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _intro.forward(from: 0);
+        });
+      }
       _layout = BoardLayout.fit(g, size);
       _layoutKey = (g, size);
       // Reset zoom for the new board after this frame (not during build).
@@ -76,12 +92,16 @@ class _BoardViewState extends ConsumerState<BoardView> {
           for (final t in e.tiles) {
             final r = layout.tileRect(t);
             final sym = TileCatalog.byId(s.board!.symbols[t]);
-            _bursts.add(_BurstData(
-              _burstId++,
-              r.center,
-              e.kind == FeedbackKind.magic ? AppColors.gold : Color(sym.accent),
-              r.width,
-            ));
+            _bursts.add(
+              _BurstData(
+                _burstId++,
+                r.center,
+                e.kind == FeedbackKind.magic
+                    ? AppColors.gold
+                    : Color(sym.accent),
+                r.width,
+              ),
+            );
           }
         case FeedbackKind.shuffle:
         case FeedbackKind.undo:
@@ -107,84 +127,136 @@ class _BoardViewState extends ConsumerState<BoardView> {
     final g = board.geometry;
     final controller = ref.read(gameControllerProvider.notifier);
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final layout = _layoutFor(g, constraints.biggest);
-      final selectable = board.selectableTiles.toSet();
-      final gap = GameConstants.tileGap * layout.unitW;
-      final thick = GameConstants.tileThickness * layout.unitW;
-      final blockers = s.blockers.toSet();
-      final hint = s.hint;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final layout = _layoutFor(g, constraints.biggest);
+        final selectable = board.selectableTiles.toSet();
+        final gap = GameConstants.tileGap * layout.unitW;
+        final thick = GameConstants.tileThickness * layout.unitW;
+        final blockers = s.blockers.toSet();
+        final hint = s.hint;
 
-      final children = <Widget>[];
-      for (final i in g.zOrder) {
-        final face = layout.tileRect(i).deflate(gap);
-        final symbol = TileCatalog.byId(board.symbols[i]);
-        children.add(Positioned(
-          key: ValueKey('tile-$i'),
-          left: face.left,
-          top: face.top,
-          width: face.width + thick * GameConstants.tileSideRatio,
-          height: face.height + thick,
-          child: TileWidget(
-            symbol: symbol,
-            layer: g.tiles[i].layer,
-            removed: board.isRemoved(i),
-            selectable: selectable.contains(i),
-            selected: s.selected == i,
-            hinted: hint != null && hint.contains(i),
-            dimBlocked: settings.dimBlockedTiles,
-            inspected: s.inspected == i,
-            isBlocker: blockers.contains(i),
-            shakeNonce: _shakeNonce[i] ?? 0,
-            strongShake: _strongShake[i] ?? false,
-            revealNonce: _revealNonce[i] ?? 0,
-            reduceMotion: settings.reduceMotion,
-            thickness: thick,
-          ),
-        ));
-      }
-      for (final b in _bursts) {
-        children.add(ParticleBurst(
-          key: ValueKey('burst-${b.id}'),
-          center: b.center,
-          color: b.color,
-          size: b.size,
-          seed: b.id,
-          onDone: () {
-            if (mounted) setState(() => _bursts.removeWhere((x) => x.id == b.id));
+        final children = <Widget>[];
+        final rows = (g.maxY - g.minY).abs() + 1;
+        for (final i in g.zOrder) {
+          final face = layout.tileRect(i).deflate(gap);
+          final symbol = TileCatalog.byId(board.symbols[i]);
+          final t = g.tiles[i];
+          // Lower layers land first, then each layer sweeps top to bottom.
+          final delay = (t.layer * 0.1 + (t.y - g.minY) / rows * 0.3)
+              .clamp(0.0, 0.6)
+              .toDouble();
+          children.add(
+            Positioned(
+              key: ValueKey('tile-$i'),
+              left: face.left,
+              top: face.top,
+              width: face.width + thick * GameConstants.tileSideRatio,
+              height: face.height + thick,
+              child: _DealIn(
+                animation: _intro,
+                delay: delay,
+                lift: layout.unitW * 0.6,
+                child: TileWidget(
+                  symbol: symbol,
+                  layer: g.tiles[i].layer,
+                  removed: board.isRemoved(i),
+                  selectable: selectable.contains(i),
+                  selected: s.selected == i,
+                  hinted: hint != null && hint.contains(i),
+                  dimBlocked: settings.dimBlockedTiles,
+                  inspected: s.inspected == i,
+                  isBlocker: blockers.contains(i),
+                  shakeNonce: _shakeNonce[i] ?? 0,
+                  strongShake: _strongShake[i] ?? false,
+                  revealNonce: _revealNonce[i] ?? 0,
+                  reduceMotion: settings.reduceMotion,
+                  thickness: thick,
+                ),
+              ),
+            ),
+          );
+        }
+        for (final b in _bursts) {
+          children.add(
+            ParticleBurst(
+              key: ValueKey('burst-${b.id}'),
+              center: b.center,
+              color: b.color,
+              size: b.size,
+              seed: b.id,
+              onDone: () {
+                if (mounted) {
+                  setState(() => _bursts.removeWhere((x) => x.id == b.id));
+                }
+              },
+            ),
+          );
+        }
+
+        final content = GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapUp: (d) {
+            final i = layout.hitTest(d.localPosition, board.removed);
+            if (i != null) controller.tapTile(i);
           },
-        ));
-      }
+          onLongPressStart: (d) {
+            final i = layout.hitTest(d.localPosition, board.removed);
+            if (i != null) controller.inspect(i);
+          },
+          child: SizedBox(
+            width: layout.contentSize.width,
+            height: layout.contentSize.height,
+            child: Stack(clipBehavior: Clip.none, children: children),
+          ),
+        );
 
-      final content = GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapUp: (d) {
-          final i = layout.hitTest(d.localPosition, board.removed);
-          if (i != null) controller.tapTile(i);
-        },
-        onLongPressStart: (d) {
-          final i = layout.hitTest(d.localPosition, board.removed);
-          if (i != null) controller.inspect(i);
-        },
-        child: SizedBox(
-          width: layout.contentSize.width,
-          height: layout.contentSize.height,
-          child: Stack(clipBehavior: Clip.none, children: children),
+        return InteractiveViewer(
+          transformationController: _transform,
+          constrained: false,
+          minScale: layout.overflows
+              ? (constraints.maxWidth / layout.contentSize.width)
+                    .clamp(0.4, 1.0)
+                    .toDouble()
+              : 1,
+          maxScale: 2.5,
+          boundaryMargin: const EdgeInsets.all(40),
+          child: content,
+        );
+      },
+    );
+  }
+}
+
+/// Fades a tile in while it drops onto the board.
+class _DealIn extends StatelessWidget {
+  final Animation<double> animation;
+  final double delay;
+  final double lift;
+  final Widget child;
+
+  const _DealIn({
+    required this.animation,
+    required this.delay,
+    required this.lift,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: animation,
+    child: child,
+    builder: (context, child) {
+      final v = ((animation.value - delay) / 0.4).clamp(0.0, 1.0);
+      if (v >= 1) return child!;
+      final e = Curves.easeOutBack.transform(v);
+      return Opacity(
+        opacity: Curves.easeOut.transform(v),
+        child: Transform.translate(
+          offset: Offset(0, -lift * (1 - e)),
+          child: child,
         ),
       );
-
-      return InteractiveViewer(
-        transformationController: _transform,
-        constrained: false,
-        minScale: layout.overflows
-            ? (constraints.maxWidth / layout.contentSize.width)
-                .clamp(0.4, 1.0)
-                .toDouble()
-            : 1,
-        maxScale: 2.5,
-        boundaryMargin: const EdgeInsets.all(40),
-        child: content,
-      );
-    });
-  }
+    },
+  );
 }
