@@ -1,0 +1,3 @@
+tags:
+  batch:
+    skip: "Long-running; run with: flutter test test/batch --run-skipped --tags batch"
