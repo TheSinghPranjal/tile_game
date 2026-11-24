@@ -5,15 +5,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/game_constants.dart';
+import '../../../core/audio/game_audio.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/decor.dart';
 import '../../achievements/presentation/achievements_screen.dart';
 import '../../game/presentation/screens/game_screen.dart';
+import '../../help/presentation/how_to_play_screen.dart';
 import '../../levels/data/level_repository.dart';
 import '../../levels/domain/level_config.dart';
 import '../../levels/presentation/level_select_screen.dart';
 import '../../progress/data/progress_repository.dart';
-import '../../settings/presentation/settings_panel.dart';
+import '../../settings/domain/game_settings.dart';
+import '../../settings/presentation/settings_screen.dart';
 
 /// Garden artwork with the logo and hero tiles baked in. It was extended to a
 /// phone aspect (0.46) by lengthening a plain sky band below the logo.
@@ -62,143 +66,182 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     precacheImage(const AssetImage(_bgAsset), context);
   }
 
-  void _play(int level) => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => GameScreen(level: level)),
-      );
-
-  void _openSettings() => showModalBottomSheet(
-        context: context,
-        showDragHandle: true,
-        backgroundColor: AppColors.cream,
-        builder: (_) => const SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: SettingsPanel(),
-          ),
+  /// The first time anyone plays, the How to play guide comes first.
+  void _play(int level) {
+    final settings = ref.read(settingsProvider);
+    final nav = Navigator.of(context);
+    if (settings.seenTutorial) {
+      nav.push(MaterialPageRoute(builder: (_) => GameScreen(level: level)));
+      return;
+    }
+    nav.push(
+      MaterialPageRoute(
+        builder: (_) => HowToPlayScreen(
+          onDone: () {
+            final n = ref.read(settingsProvider.notifier);
+            n.update(ref.read(settingsProvider).copyWith(seenTutorial: true));
+            nav.pushReplacement(
+              MaterialPageRoute(builder: (_) => GameScreen(level: level)),
+            );
+          },
         ),
-      );
+      ),
+    );
+  }
+
+  void _openSettings() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+
+  void _openHowToPlay() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const HowToPlayScreen()));
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final p = ref.watch(progressProvider);
     final current = p.savedGame?.levelNumber ?? p.highestUnlocked;
     final tier = DifficultyTier.forLevel(current);
     final padding = MediaQuery.paddingOf(context);
 
     return Scaffold(
-      body: LayoutBuilder(builder: (context, c) {
-        // Same maths as BoxFit.cover + Alignment.topCenter, so overlays can be
-        // placed relative to the logo painted inside the artwork.
-        final scale = math.max(
-          c.maxWidth / _bgSize.width,
-          c.maxHeight / _bgSize.height,
-        );
-        final contentWidth = math.min(c.maxWidth - 36, 440.0);
-        final contentTop = math.max(_logoBottom * scale - 2, padding.top + 56);
+      body: LayoutBuilder(
+        builder: (context, c) {
+          // Same maths as BoxFit.cover + Alignment.topCenter, so overlays can be
+          // placed relative to the logo painted inside the artwork.
+          final scale = math.max(
+            c.maxWidth / _bgSize.width,
+            c.maxHeight / _bgSize.height,
+          );
+          final contentWidth = math.min(c.maxWidth - 36, 440.0);
+          final contentTop = math.max(
+            _logoBottom * scale - 2,
+            padding.top + 56,
+          );
 
-        return Stack(
-          children: [
-            const Positioned.fill(
-              child: Image(
-                image: AssetImage(_bgAsset),
-                fit: BoxFit.cover,
-                alignment: Alignment.topCenter,
-                filterQuality: FilterQuality.medium,
-              ),
-            ),
-            Positioned(
-              top: padding.top + 4,
-              left: 16,
-              child: _StarBadge(
-                stars: p.totalStars,
-                // Fit the gap between the status bar and the painted tiles.
-                height: (_firstTileTop * scale - padding.top - 10)
-                    .clamp(30.0, 44.0)
-                    .toDouble(),
-              ),
-            ),
-            Positioned(
-              top: contentTop,
-              left: 0,
-              right: 0,
-              bottom: padding.bottom + 10,
-              child: Align(
-                alignment: Alignment.topCenter,
-                // Shrinks the whole block uniformly on short screens.
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
+          return Stack(
+            children: [
+              const Positioned.fill(
+                child: Image(
+                  image: AssetImage(_bgAsset),
+                  fit: BoxFit.cover,
                   alignment: Alignment.topCenter,
-                  child: SizedBox(
-                    width: contentWidth,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _TaglineRibbon(width: contentWidth * 0.9),
-                        const SizedBox(height: 22),
-                        _PlayButton(
-                          label: p.savedGame != null
-                              ? 'Continue Level $current'
-                              : p.allLevelsCleared
-                                  ? 'Replay Level $current'
-                                  : 'Play Level $current',
-                          sublabel: p.allLevelsCleared && p.savedGame == null
-                              ? 'All ${GameConstants.totalLevels} levels cleared!'
-                              : 'Level $current of ${GameConstants.totalLevels} • ${tier.displayName}',
-                          onTap: () => _play(current),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(children: [
-                          Expanded(
-                            child: _MenuCard(
-                              label: 'Levels',
-                              style: _MenuStyle.levels,
-                              icon: const _GradientIcon(
-                                Icons.auto_stories_rounded,
-                                [Color(0xFFB86BFF), Color(0xFF7B2FE0)],
-                              ),
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => LevelSelectScreen(onPlay: _play),
+                  filterQuality: FilterQuality.medium,
+                ),
+              ),
+              // Evening tint in dark mode.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ColoredBox(color: context.palette.backdropScrim),
+                ),
+              ),
+              Positioned(
+                top: padding.top + 4,
+                left: 16,
+                child: _StarBadge(
+                  stars: p.totalStars,
+                  // Fit the gap between the status bar and the painted tiles.
+                  height: (_firstTileTop * scale - padding.top - 10)
+                      .clamp(30.0, 44.0)
+                      .toDouble(),
+                ),
+              ),
+              Positioned(
+                top: contentTop,
+                left: 0,
+                right: 0,
+                bottom: padding.bottom + 10,
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  // Shrinks the whole block uniformly on short screens.
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      width: contentWidth,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _TaglineRibbon(width: contentWidth * 0.9),
+                          const SizedBox(height: 22),
+                          _PlayButton(
+                            label: p.savedGame != null
+                                ? l.continueLevel(current)
+                                : p.allLevelsCleared
+                                ? l.replayLevel(current)
+                                : l.playLevel(current),
+                            sublabel: p.allLevelsCleared && p.savedGame == null
+                                ? l.allLevelsCleared(GameConstants.totalLevels)
+                                : l.levelOfTotal(
+                                    current,
+                                    GameConstants.totalLevels,
+                                    l.tier(tier),
+                                  ),
+                            onTap: () => _play(current),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _MenuCard(
+                                  label: l.menuLevels,
+                                  style: _MenuStyle.levels,
+                                  icon: const _GradientIcon(
+                                    Icons.auto_stories_rounded,
+                                    [Color(0xFFB86BFF), Color(0xFF7B2FE0)],
+                                  ),
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          LevelSelectScreen(onPlay: _play),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _MenuCard(
-                              label: 'Awards',
-                              style: _MenuStyle.awards,
-                              icon: const Text('🏆', style: TextStyle(fontSize: 38)),
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (_) => const AchievementsScreen()),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _MenuCard(
+                                  label: l.menuAwards,
+                                  style: _MenuStyle.awards,
+                                  icon: const Text(
+                                    '🏆',
+                                    style: TextStyle(fontSize: 38),
+                                  ),
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const AchievementsScreen(),
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _MenuCard(
-                              label: 'Settings',
-                              style: _MenuStyle.settings,
-                              icon: const _GradientIcon(
-                                Icons.settings_rounded,
-                                [Color(0xFF5B9BFF), Color(0xFF2F5FE0)],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _MenuCard(
+                                  label: l.menuSettings,
+                                  style: _MenuStyle.settings,
+                                  icon: const _GradientIcon(
+                                    Icons.settings_rounded,
+                                    [Color(0xFF5B9BFF), Color(0xFF2F5FE0)],
+                                  ),
+                                  onTap: _openSettings,
+                                ),
                               ),
-                              onTap: _openSettings,
-                            ),
+                            ],
                           ),
-                        ]),
-                        const SizedBox(height: 36),
-                        const _InfoCard(),
-                      ],
+                          const SizedBox(height: 36),
+                          _InfoCard(onTap: _openHowToPlay),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        );
-      }),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -206,35 +249,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 // --------------------------------------------------------------- pieces --
 
 /// Scales down while pressed, for a tactile "button" feel.
-class _Pressable extends StatefulWidget {
+class _Pressable extends ConsumerStatefulWidget {
   final Widget child;
   final VoidCallback onTap;
   const _Pressable({required this.child, required this.onTap});
 
   @override
-  State<_Pressable> createState() => _PressableState();
+  ConsumerState<_Pressable> createState() => _PressableState();
 }
 
-class _PressableState extends State<_Pressable> {
+class _PressableState extends ConsumerState<_Pressable> {
   bool _down = false;
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _down = true),
-        onTapCancel: () => setState(() => _down = false),
-        onTapUp: (_) => setState(() => _down = false),
-        onTap: () {
-          HapticFeedback.selectionClick();
-          widget.onTap();
-        },
-        child: AnimatedScale(
-          scale: _down ? 0.95 : 1,
-          duration: const Duration(milliseconds: 110),
-          curve: Curves.easeOut,
-          child: widget.child,
-        ),
-      );
+    behavior: HitTestBehavior.opaque,
+    onTapDown: (_) => setState(() => _down = true),
+    onTapCancel: () => setState(() => _down = false),
+    onTapUp: (_) => setState(() => _down = false),
+    onTap: () {
+      if (ref.read(settingsProvider).haptics) {
+        HapticFeedback.selectionClick();
+      }
+      ref.read(gameAudioProvider).play(Sfx.button);
+      widget.onTap();
+    },
+    child: AnimatedScale(
+      scale: _down ? 0.95 : 1,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      child: widget.child,
+    ),
+  );
 }
 
 class _StarBadge extends StatelessWidget {
@@ -244,30 +290,36 @@ class _StarBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        height: height,
-        padding: EdgeInsets.fromLTRB(height * 0.18, 0, height * 0.42, 0),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFFFF3DA)],
-          ),
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: const Color(0xFFF6D88E), width: 2),
-          boxShadow: const [
-            BoxShadow(color: Color(0x33000000), blurRadius: 8, offset: Offset(0, 3)),
-          ],
+    height: height,
+    padding: EdgeInsets.fromLTRB(height * 0.18, 0, height * 0.42, 0),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.white, Color(0xFFFFF3DA)],
+      ),
+      borderRadius: BorderRadius.circular(99),
+      border: Border.all(color: const Color(0xFFF6D88E), width: 2),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x33000000),
+          blurRadius: 8,
+          offset: Offset(0, 3),
         ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          _GradientIcon(
-            Icons.star_rounded,
-            const [Color(0xFFFFD84D), Color(0xFFFF9F1C)],
-            size: height * 0.72,
-          ),
-          SizedBox(width: height * 0.15),
-          Text('$stars', style: _fredoka(height * 0.48, 700, _C.plum)),
-        ]),
-      );
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _GradientIcon(Icons.star_rounded, const [
+          Color(0xFFFFD84D),
+          Color(0xFFFF9F1C),
+        ], size: height * 0.72),
+        SizedBox(width: height * 0.15),
+        Text('$stars', style: _fredoka(height * 0.48, 700, _C.plum)),
+      ],
+    ),
+  );
 }
 
 class _GradientIcon extends StatelessWidget {
@@ -278,14 +330,14 @@ class _GradientIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ShaderMask(
-        blendMode: BlendMode.srcIn,
-        shaderCallback: (r) => LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ).createShader(r),
-        child: Icon(icon, size: size, color: Colors.white),
-      );
+    blendMode: BlendMode.srcIn,
+    shaderCallback: (r) => LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: colors,
+    ).createShader(r),
+    child: Icon(icon, size: size, color: Colors.white),
+  );
 }
 
 /// Cream banner with folded tails, like a garden-party ribbon.
@@ -295,27 +347,27 @@ class _TaglineRibbon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: width,
-        height: 52,
-        child: CustomPaint(
-          painter: _RibbonPainter(),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 9),
-            child: Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 36),
-                  child: Text(
-                    'Find the pairs. Clear the grove.',
-                    style: _fredoka(19, 600, _C.ribbonText),
-                  ),
-                ),
+    width: width,
+    height: 52,
+    child: CustomPaint(
+      painter: _RibbonPainter(),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 9),
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 36),
+              child: Text(
+                context.l10n.tagline,
+                style: _fredoka(19, 600, _C.ribbonText),
               ),
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class _RibbonPainter extends CustomPainter {
@@ -408,8 +460,11 @@ class _PlayButton extends StatelessWidget {
   final String label;
   final String sublabel;
   final VoidCallback onTap;
-  const _PlayButton(
-      {required this.label, required this.sublabel, required this.onTap});
+  const _PlayButton({
+    required this.label,
+    required this.sublabel,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -429,7 +484,10 @@ class _PlayButton extends StatelessWidget {
           boxShadow: [
             BoxShadow(color: Color(0xFFE08A00), offset: Offset(0, 6)),
             BoxShadow(
-                color: Color(0x66FF9800), blurRadius: 22, offset: Offset(0, 10)),
+              color: Color(0x66FF9800),
+              blurRadius: 22,
+              offset: Offset(0, 10),
+            ),
           ],
         ),
         child: Container(
@@ -466,50 +524,57 @@ class _PlayButton extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 0, 24, 0),
-                child: Row(children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
                             color: Color(0x40B26A00),
                             blurRadius: 8,
-                            offset: Offset(0, 3)),
-                      ],
-                    ),
-                    child: const Center(
-                      child: _GradientIcon(
-                        Icons.play_arrow_rounded,
-                        [Color(0xFFFFB020), Color(0xFFFF7A00)],
-                        size: 50,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: _GradientIcon(Icons.play_arrow_rounded, [
+                          Color(0xFFFFB020),
+                          Color(0xFFFF7A00),
+                        ], size: 50),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(label, style: _fredoka(31, 700, _C.plum)),
-                        ),
-                        const SizedBox(height: 2),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(sublabel,
-                              style: _fredoka(17, 600, _C.plumSoft)),
-                        ),
-                      ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              label,
+                              style: _fredoka(31, 700, _C.plum),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              sublabel,
+                              style: _fredoka(17, 600, _C.plumSoft),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
               ),
             ],
           ),
@@ -578,43 +643,48 @@ class _MenuCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(color: style.depth, offset: const Offset(0, 5)),
             const BoxShadow(
-                color: Color(0x33000000), blurRadius: 14, offset: Offset(0, 9)),
+              color: Color(0x33000000),
+              blurRadius: 14,
+              offset: Offset(0, 9),
+            ),
           ],
         ),
-        child: Stack(children: [
-          Positioned(
-            left: 10,
-            right: 10,
-            top: 5,
-            height: 26,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white.withValues(alpha: 0.75),
-                    Colors.white.withValues(alpha: 0),
-                  ],
+        child: Stack(
+          children: [
+            Positioned(
+              left: 10,
+              right: 10,
+              top: 5,
+              height: 26,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.75),
+                      Colors.white.withValues(alpha: 0),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 46, child: Center(child: icon)),
-                const SizedBox(height: 6),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(label, style: _fredoka(21, 700, style.text)),
-                ),
-              ],
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 46, child: Center(child: icon)),
+                  const SizedBox(height: 6),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(label, style: _fredoka(21, 700, style.text)),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }
@@ -622,88 +692,135 @@ class _MenuCard extends StatelessWidget {
 
 /// How-to-play card with an "i" badge and a leaf flourish.
 class _InfoCard extends StatelessWidget {
-  const _InfoCard();
+  final VoidCallback onTap;
+  const _InfoCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(22, 26, 22, 20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(36),
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFFFFBF4), Color(0xFFFCEBDD)],
-            ),
-            border: Border.all(color: const Color(0xFFE4B2EC), width: 3),
-            boxShadow: const [
-              BoxShadow(
-                  color: Color(0x33000000), blurRadius: 14, offset: Offset(0, 6)),
-            ],
-          ),
-          child: Text(
-            'Tap two identical FREE tiles to clear them. A tile is free when '
-            'nothing sits on top of it and its left or right side is open. '
-            'Long-press any tile to see what is blocking it.',
-            textAlign: TextAlign.center,
-            style: _fredoka(16, 500, _C.plum, height: 1.4),
-          ),
-        ),
-        // Inner hairline for the double-border look.
-        Positioned.fill(
-          child: IgnorePointer(
-            child: Container(
-              margin: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.9), width: 1.5),
+    final l = context.l10n;
+    final dark = context.isDark;
+    final text = dark ? context.palette.onPanel : _C.plum;
+    return _Pressable(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(22, 26, 22, 20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(36),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: dark
+                    ? const [Color(0xFF2E2445), Color(0xFF231B35)]
+                    : const [Color(0xFFFFFBF4), Color(0xFFFCEBDD)],
               ),
-            ),
-          ),
-        ),
-        Positioned(
-          top: -18,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFC06BFF), Color(0xFF7A2BD6)],
+              border: Border.all(
+                color: dark ? const Color(0xFF6A4E9A) : const Color(0xFFE4B2EC),
+                width: 3,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33000000),
+                  blurRadius: 14,
+                  offset: Offset(0, 6),
                 ),
-                border: Border.all(color: Colors.white, width: 3),
-                boxShadow: const [
-                  BoxShadow(
-                      color: Color(0x40000000), blurRadius: 6, offset: Offset(0, 2)),
-                ],
-              ),
-              child: Center(
-                child:
-                    Text('i', style: _fredoka(19, 700, Colors.white, height: 1)),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l.homeInfo,
+                  textAlign: TextAlign.center,
+                  style: _fredoka(16, 500, text, height: 1.4),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      l.howToPlay,
+                      style: _fredoka(
+                        16,
+                        700,
+                        dark
+                            ? const Color(0xFFC9A8FF)
+                            : const Color(0xFF7A2BD6),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: dark
+                          ? const Color(0xFFC9A8FF)
+                          : const Color(0xFF7A2BD6),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Inner hairline for the double-border look.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                margin: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: dark ? 0.12 : 0.9),
+                    width: 1.5,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-        const Positioned(
-          top: -16,
-          right: -8,
-          child: SizedBox(
-            width: 48,
-            height: 40,
-            child: CustomPaint(painter: LeavesPainter()),
+          Positioned(
+            top: -18,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFFC06BFF), Color(0xFF7A2BD6)],
+                  ),
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x40000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    'i',
+                    style: _fredoka(19, 700, Colors.white, height: 1),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ],
+          const Positioned(
+            top: -16,
+            right: -8,
+            child: SizedBox(
+              width: 48,
+              height: 40,
+              child: CustomPaint(painter: LeavesPainter()),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

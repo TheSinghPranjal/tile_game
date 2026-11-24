@@ -35,6 +35,10 @@ class TileBodyPainter extends CustomPainter {
   final double flash; // 0..1 newly-free shimmer
   final Color? outline;
 
+  /// Face gradient (from the theme's [GamePalette]).
+  final Color faceTop;
+  final Color faceBottom;
+
   TileBodyPainter({
     required this.glyph,
     required this.accent,
@@ -45,6 +49,8 @@ class TileBodyPainter extends CustomPainter {
     required this.highlightColor,
     required this.flash,
     this.outline,
+    this.faceTop = const Color(0xFFFFFEFA),
+    this.faceBottom = const Color(0xFFF7EFE2),
   });
 
   @override
@@ -102,8 +108,8 @@ class TileBodyPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFFFFFEFA),
-            Color.lerp(const Color(0xFFF7EFE2), accent, 0.025)!,
+            faceTop,
+            Color.lerp(faceBottom, accent, 0.025)!,
           ],
         ).createShader(face),
     );
@@ -171,5 +177,7 @@ class TileBodyPainter extends CustomPainter {
       old.highlightColor != highlightColor ||
       old.flash != flash ||
       old.outline != outline ||
+      old.faceTop != faceTop ||
+      old.faceBottom != faceBottom ||
       old.layerShadow != layerShadow;
 }

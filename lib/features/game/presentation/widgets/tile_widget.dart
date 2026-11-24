@@ -110,6 +110,7 @@ class _TileWidgetState extends State<TileWidget> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final w = widget;
+    final palette = context.palette;
     final animations = Listenable.merge([
       _select,
       _shake,
@@ -148,6 +149,8 @@ class _TileWidgetState extends State<TileWidget> with TickerProviderStateMixin {
                 highlightColor: highlightColor,
                 flash: flash,
                 outline: outline,
+                faceTop: palette.tileFaceTop,
+                faceBottom: palette.tileFaceBottom,
               ),
               child: const SizedBox.expand(),
             ),

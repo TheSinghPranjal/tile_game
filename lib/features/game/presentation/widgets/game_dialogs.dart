@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/game_constants.dart';
+import '../../../../core/l10n/l10n.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/common.dart';
 import '../../../progress/data/progress_repository.dart';
@@ -48,6 +49,8 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
   @override
   Widget build(BuildContext context) {
     final r = widget.reward;
+    final l = context.l10n;
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     final isFinal = widget.level >= GameConstants.totalLevels;
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 28),
@@ -58,12 +61,21 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
           children: [
             Text(isFinal ? '🏆' : '🎉', style: const TextStyle(fontSize: 46)),
             const SizedBox(height: 4),
-            Text(isFinal ? 'All ${GameConstants.totalLevels} levels cleared!' : 'Board Cleared!',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              isFinal
+                  ? l.allLevelsCleared(GameConstants.totalLevels)
+                  : l.boardCleared,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 2),
-            Text('Level ${widget.level} · ${widget.difficultyLabel}',
-                style: const TextStyle(color: AppColors.inkSoft)),
+            Text(
+              l.levelDifficulty(
+                widget.level,
+                l.difficulty(widget.difficultyLabel),
+              ),
+              style: TextStyle(color: muted),
+            ),
             const SizedBox(height: 14),
             AnimatedBuilder(
               animation: _c,
@@ -73,7 +85,8 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
                   for (var i = 0; i < 3; i++)
                     Transform.scale(
                       scale: Curves.elasticOut.transform(
-                          ((_c.value * 3 - i * 0.5).clamp(0.0, 1.0))),
+                        ((_c.value * 3 - i * 0.5).clamp(0.0, 1.0)),
+                      ),
                       child: Icon(
                         Icons.star_rounded,
                         size: i == 1 ? 64 : 50,
@@ -84,15 +97,19 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
               ),
             ),
             if (r.stars < 3)
-              const Text(
-                'Clear it without Hint, Shuffle or Magic for 3 stars',
+              Text(
+                l.threeStarTip,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.inkSoft, fontSize: 12),
+                style: TextStyle(color: muted, fontSize: 12),
               )
             else if (r.newBest)
-              const Text('New best!',
-                  style: TextStyle(
-                      color: AppColors.goldDeep, fontWeight: FontWeight.w800)),
+              Text(
+                l.newBest,
+                style: const TextStyle(
+                  color: AppColors.goldDeep,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             const SizedBox(height: 10),
             Pill(child: Text('⏱ ${formatClock(widget.elapsedMs)}')),
             if (r.achievements.isNotEmpty) ...[
@@ -101,29 +118,40 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
                 Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.gold.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Row(children: [
-                      Text(a.badge, style: const TextStyle(fontSize: 22)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Achievement: ${a.title}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.ink)),
-                            Text(a.description,
-                                style: const TextStyle(fontSize: 12)),
-                          ],
+                    child: Row(
+                      children: [
+                        Text(a.badge, style: const TextStyle(fontSize: 22)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l.achievementUnlocked(l.achievementTitle(a)),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                l.achievementDescription(a),
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ]),
+                      ],
+                    ),
                   ),
                 ),
             ],
@@ -132,11 +160,14 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: widget.onNext,
-                icon: Icon(isFinal
-                    ? Icons.emoji_events_rounded
-                    : Icons.play_arrow_rounded),
+                icon: Icon(
+                  isFinal
+                      ? Icons.emoji_events_rounded
+                      : Icons.play_arrow_rounded,
+                ),
                 label: Text(
-                    isFinal ? 'Finish the journey' : 'Level ${widget.level + 1}'),
+                  isFinal ? l.finishJourney : l.levelLabel(widget.level + 1),
+                ),
               ),
             ),
             const SizedBox(height: 6),
@@ -146,12 +177,12 @@ class _LevelCompleteDialogState extends State<LevelCompleteDialog>
                 TextButton.icon(
                   onPressed: widget.onReplay,
                   icon: const Icon(Icons.replay_rounded),
-                  label: const Text('Replay'),
+                  label: Text(l.replay),
                 ),
                 TextButton.icon(
                   onPressed: widget.onHome,
                   icon: const Icon(Icons.home_rounded),
-                  label: const Text('Home'),
+                  label: Text(l.home),
                 ),
               ],
             ),
@@ -177,28 +208,24 @@ class NoMovesDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        icon: const Text('🤔', style: TextStyle(fontSize: 40)),
-        title: const Text('No matches left'),
-        content: const Text(
-          'None of the free tiles match right now. A free shuffle will re-deal '
-          'the remaining tiles into a board that is guaranteed to be clearable.',
-          textAlign: TextAlign.center,
+    icon: const Text('🤔', style: TextStyle(fontSize: 40)),
+    title: Text(context.l10n.noMatchesTitle),
+    content: Text(context.l10n.noMatchesBody, textAlign: TextAlign.center),
+    actionsAlignment: MainAxisAlignment.center,
+    actions: [
+      if (canUndo)
+        TextButton.icon(
+          onPressed: onUndo,
+          icon: const Icon(Icons.undo_rounded),
+          label: Text(context.l10n.undo),
         ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          if (canUndo)
-            TextButton.icon(
-              onPressed: onUndo,
-              icon: const Icon(Icons.undo_rounded),
-              label: const Text('Undo'),
-            ),
-          FilledButton.icon(
-            onPressed: onShuffle,
-            icon: const Icon(Icons.shuffle_rounded),
-            label: const Text('Free shuffle'),
-          ),
-        ],
-      );
+      FilledButton.icon(
+        onPressed: onShuffle,
+        icon: const Icon(Icons.shuffle_rounded),
+        label: Text(context.l10n.freeShuffle),
+      ),
+    ],
+  );
 }
 
 enum PauseAction { resume, restart, home }
@@ -209,42 +236,48 @@ class PauseSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Paused',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              l.paused,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 8),
             settings,
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: () => Navigator.pop(context, PauseAction.resume),
               icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Resume'),
+              label: Text(l.resume),
             ),
             const SizedBox(height: 8),
-            Row(children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.pop(context, PauseAction.restart),
-                  icon: const Icon(Icons.restart_alt_rounded),
-                  label: const Text('Restart'),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () =>
+                        Navigator.pop(context, PauseAction.restart),
+                    icon: const Icon(Icons.restart_alt_rounded),
+                    label: Text(l.restart),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.pop(context, PauseAction.home),
-                  icon: const Icon(Icons.home_rounded),
-                  label: const Text('Home'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pop(context, PauseAction.home),
+                    icon: const Icon(Icons.home_rounded),
+                    label: Text(l.home),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ],
         ),
       ),
@@ -275,13 +308,10 @@ class _ConfettiOverlayState extends State<ConfettiOverlay>
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
-        child: RepaintBoundary(
-          child: CustomPaint(
-            painter: _ConfettiPainter(_c),
-            size: Size.infinite,
-          ),
-        ),
-      );
+    child: RepaintBoundary(
+      child: CustomPaint(painter: _ConfettiPainter(_c), size: Size.infinite),
+    ),
+  );
 }
 
 class _ConfettiPainter extends CustomPainter {
@@ -303,7 +333,8 @@ class _ConfettiPainter extends CustomPainter {
     for (var i = 0; i < 70; i++) {
       final x0 = r.nextDouble() * size.width;
       final speed = 0.6 + r.nextDouble() * 0.8;
-      final y = -20 + (size.height + 40) * (t.value * speed + r.nextDouble() * 0.15);
+      final y =
+          -20 + (size.height + 40) * (t.value * speed + r.nextDouble() * 0.15);
       final x = x0 + math.sin(t.value * 8 + i) * 18;
       p.color = _colors[i % _colors.length].withValues(alpha: fade);
       canvas.save();

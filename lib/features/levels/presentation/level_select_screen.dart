@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/game_constants.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/common.dart';
 import '../../progress/data/progress_repository.dart';
@@ -34,7 +35,7 @@ class LevelSelectScreen extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
             child: Text(
-              '${tiers[t].displayName}  ·  $first–$last',
+              context.l10n.tierRange(context.l10n.tier(tiers[t]), first, last),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -73,8 +74,7 @@ class LevelSelectScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Levels'),
-        backgroundColor: AppColors.cream,
+        title: Text(context.l10n.menuLevels),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -106,11 +106,12 @@ class _LevelCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final bg = current
         ? AppColors.gold
         : unlocked
-            ? Colors.white
-            : Colors.black.withValues(alpha: 0.06);
+            ? scheme.surfaceContainerHighest
+            : scheme.onSurface.withValues(alpha: 0.06);
     return Material(
       color: bg,
       borderRadius: BorderRadius.circular(18),
@@ -127,14 +128,16 @@ class _LevelCell extends StatelessWidget {
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
-                      color: current ? Colors.white : AppColors.ink))
+                      color: current ? Colors.white : scheme.onSurface))
             else
-              const Icon(Icons.lock_rounded, color: Colors.black26),
+              Icon(Icons.lock_rounded,
+                  semanticLabel: context.l10n.locked,
+                  color: scheme.onSurface.withValues(alpha: 0.26)),
             const SizedBox(height: 4),
             if (unlocked && !current) StarRow(stars: stars, size: 13),
             if (current)
-              const Text('PLAY',
-                  style: TextStyle(
+              Text(context.l10n.play,
+                  style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
                       fontSize: 11)),

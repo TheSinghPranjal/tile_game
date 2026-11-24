@@ -31,6 +31,25 @@ class FeedbackEvent {
   const FeedbackEvent(this.kind, this.tiles, this.nonce);
 }
 
+/// Short status messages shown to the player. The UI translates them.
+enum GameMessage {
+  tileFree,
+  noBoosterLeft,
+  noWinningMoves,
+  nothingToUndo,
+  cantShuffle,
+  magicArmed,
+  twinNotFree,
+}
+
+class GameToast {
+  final GameMessage message;
+
+  /// Set for [GameMessage.noBoosterLeft].
+  final BoosterType? booster;
+  const GameToast(this.message, {this.booster});
+}
+
 const _unset = Object();
 
 class GameViewState {
@@ -47,7 +66,7 @@ class GameViewState {
   final int elapsedMs;
   final Map<BoosterType, int> boostersUsed;
   final bool noMoves;
-  final String? toast;
+  final GameToast? toast;
   final int toastNonce;
   final LevelReward? reward;
   final String? error;
@@ -136,7 +155,7 @@ class GameViewState {
         elapsedMs: elapsedMs ?? this.elapsedMs,
         boostersUsed: boostersUsed ?? this.boostersUsed,
         noMoves: noMoves ?? this.noMoves,
-        toast: toast == _unset ? this.toast : toast as String?,
+        toast: toast == _unset ? this.toast : toast as GameToast?,
         toastNonce: toastNonce ?? this.toastNonce,
         reward: reward == _unset ? this.reward : reward as LevelReward?,
         error: error == _unset ? this.error : error as String?,

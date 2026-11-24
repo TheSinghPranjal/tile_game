@@ -64,13 +64,16 @@ class Pill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: padding,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.82),
+          color: context.palette.panel,
           borderRadius: BorderRadius.circular(999),
           boxShadow: const [
             BoxShadow(color: Color(0x1A000000), blurRadius: 10, offset: Offset(0, 3)),
           ],
         ),
-        child: child,
+        child: DefaultTextStyle.merge(
+          style: TextStyle(color: context.palette.onPanel),
+          child: child,
+        ),
       );
 }
 
@@ -84,8 +87,8 @@ class StarBadge extends StatelessWidget {
           const Icon(Icons.star_rounded, color: AppColors.gold, size: 18),
           const SizedBox(width: 4),
           Text('$stars',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800, color: AppColors.ink)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w800, color: context.palette.onPanel)),
         ]),
       );
 }
@@ -96,21 +99,22 @@ class RoundIconButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String tooltip;
   final double size;
-  final Color color;
+  /// Icon colour; defaults to the theme's panel text colour.
+  final Color? color;
   const RoundIconButton({
     super.key,
     required this.icon,
     required this.onPressed,
     required this.tooltip,
     this.size = 44,
-    this.color = AppColors.ink,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) => Tooltip(
         message: tooltip,
         child: Material(
-          color: Colors.white.withValues(alpha: 0.85),
+          color: context.palette.panel,
           shape: const CircleBorder(),
           elevation: 2,
           shadowColor: Colors.black26,
@@ -120,7 +124,8 @@ class RoundIconButton extends StatelessWidget {
             child: SizedBox(
               width: size,
               height: size,
-              child: Icon(icon, color: color, size: size * 0.55),
+              child: Icon(icon,
+                  color: color ?? context.palette.onPanel, size: size * 0.55),
             ),
           ),
         ),

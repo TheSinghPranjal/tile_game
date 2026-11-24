@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/audio/game_audio.dart';
 import '../../../../core/constants/game_constants.dart';
 import '../../../../core/utils/bitset.dart';
 import '../../../../core/utils/seeded_random.dart';
@@ -151,6 +152,7 @@ class GameController extends Notifier<GameViewState> {
     if (!board.isSelectable(i)) {
       _emit(FeedbackKind.blocked, [i]);
       _haptic(HapticFeedback.lightImpact);
+      _sfx(Sfx.mismatch);
       return;
     }
 
@@ -164,7 +166,7 @@ class GameController extends Notifier<GameViewState> {
       state = state.copyWith(selected: i, phase: GamePhase.tileSelected);
       _emit(FeedbackKind.select, [i]);
       _haptic(HapticFeedback.selectionClick);
-      _click();
+      _sfx(Sfx.tap);
       return;
     }
     if (selected == i) {
@@ -180,6 +182,7 @@ class GameController extends Notifier<GameViewState> {
         // Gentle feedback; the newly tapped tile becomes the selection.
         _emit(FeedbackKind.mismatch, [selected, i]);
         _haptic(HapticFeedback.mediumImpact);
+        _sfx(Sfx.mismatch);
         state = state.copyWith(selected: i, phase: GamePhase.tileSelected);
       case MatchResultType.invalid:
         state = state.copyWith(selected: null, phase: GamePhase.playing);
@@ -198,7 +201,7 @@ class GameController extends Notifier<GameViewState> {
     );
     _emit(kind, tiles);
     _haptic(HapticFeedback.lightImpact);
-    _click();
+    _sfx(kind == FeedbackKind.magic ? Sfx.magic : Sfx.match);
     if (next.isCleared) {
       _complete();
       return;
@@ -216,7 +219,7 @@ class GameController extends Notifier<GameViewState> {
         TileAvailabilityService.blockersOf(board.geometry, board.removed, i);
     _inspectTimer?.cancel();
     state = state.copyWith(inspected: i, blockers: blockers);
-    if (blockers.isEmpty) _toast('This tile is free to match!');
+    if (blockers.isEmpty) _toast(GameMessage.tileFree);
     _inspectTimer = Timer(GameConstants.blockerInspectDuration, () {
       if (ref.mounted) state = state.copyWith(inspected: null, blockers: const []);
     });
@@ -227,7 +230,7 @@ class GameController extends Notifier<GameViewState> {
   BoosterOutcome _checkInventory(BoosterType t) {
     if (!state.isInteractive) return BoosterOutcome.unavailable;
     if (state.remaining(t) <= 0) {
-      _toast('No ${t.label}s left on this level.');
+      _toast(GameMessage.noBoosterLeft, booster: t);
       return BoosterOutcome.exhausted;
     }
     return BoosterOutcome.used;
@@ -258,6 +261,7 @@ class GameController extends Notifier<GameViewState> {
           selected: null,
           phase: GamePhase.hintActive,
         );
+        _sfx(Sfx.hint);
         _hintTimer?.cancel();
         _hintTimer = Timer(GameConstants.hintDuration, () {
           if (!ref.mounted) return;
@@ -269,7 +273,7 @@ class GameController extends Notifier<GameViewState> {
         });
         return BoosterOutcome.used;
       case HintStatus.deadEnd:
-        _toast('No winning moves from here — try Undo or Shuffle.');
+        _toast(GameMessage.noWinningMoves);
         return BoosterOutcome.unavailable;
       case HintStatus.noMoves:
         state = state.copyWith(noMoves: true);
@@ -283,7 +287,7 @@ class GameController extends Notifier<GameViewState> {
     final session = state.session!;
     final prev = session.undo();
     if (prev == null) {
-      _toast('Nothing to undo yet.');
+      _toast(GameMessage.nothingToUndo);
       return BoosterOutcome.unavailable;
     }
     final entry = session.history.last;
@@ -297,6 +301,7 @@ class GameController extends Notifier<GameViewState> {
       phase: GamePhase.undoActive,
     );
     _emit(FeedbackKind.undo, entry.pair?.both ?? const []);
+    _sfx(Sfx.button);
     _setPhaseSoon(GamePhase.playing, GameConstants.removeDuration);
     _persist();
     return BoosterOutcome.used;
@@ -319,7 +324,7 @@ class GameController extends Notifier<GameViewState> {
     if (!identical(state.session, session)) return BoosterOutcome.unavailable;
     if (next == null) {
       state = state.copyWith(phase: GamePhase.playing);
-      _toast('These tiles can\'t be rearranged into a winnable board — try Undo.');
+      _toast(GameMessage.cantShuffle);
       return BoosterOutcome.unavailable;
     }
     _markUsed(BoosterType.shuffle, free: free);
@@ -330,6 +335,7 @@ class GameController extends Notifier<GameViewState> {
       noMoves: false,
     );
     _emit(FeedbackKind.shuffle, next.remainingTiles.toList());
+    _sfx(Sfx.shuffle);
     _setPhaseSoon(GamePhase.playing, GameConstants.revealDuration);
     _persist();
     return BoosterOutcome.used;
@@ -344,7 +350,7 @@ class GameController extends Notifier<GameViewState> {
       _performMagic(state.selected!);
     } else {
       state = state.copyWith(magicArmed: !state.magicArmed);
-      if (state.magicArmed) _toast('Tap any free tile to auto-match it.');
+      if (state.magicArmed) _toast(GameMessage.magicArmed);
     }
     return BoosterOutcome.used;
   }
@@ -358,7 +364,7 @@ class GameController extends Notifier<GameViewState> {
     if (!identical(state.session, session)) return;
     if (partner == null) {
       _emit(FeedbackKind.blocked, [tile]);
-      _toast('Its twin isn\'t free yet — try another tile.');
+      _toast(GameMessage.twinNotFree);
       state = state.copyWith(magicArmed: true);
       return;
     }
@@ -399,6 +405,7 @@ class GameController extends Notifier<GameViewState> {
       if (!ref.mounted) return;
       state = state.copyWith(phase: GamePhase.completed, reward: reward);
       _haptic(HapticFeedback.heavyImpact);
+      _sfx(Sfx.win);
     });
   }
 
@@ -475,17 +482,18 @@ class GameController extends Notifier<GameViewState> {
     state = state.copyWith(event: FeedbackEvent(kind, tiles, ++_nonce));
   }
 
-  void _toast(String message) {
-    state = state.copyWith(toast: message, toastNonce: state.toastNonce + 1);
+  void _toast(GameMessage message, {BoosterType? booster}) {
+    state = state.copyWith(
+      toast: GameToast(message, booster: booster),
+      toastNonce: state.toastNonce + 1,
+    );
   }
 
   void _haptic(Future<void> Function() fx) {
     if (_settings.haptics) fx();
   }
 
-  void _click() {
-    if (_settings.sound) SystemSound.play(SystemSoundType.click);
-  }
+  void _sfx(Sfx sfx) => ref.read(gameAudioProvider).play(sfx);
 
   void _cancelTimers() {
     _clock?.cancel();

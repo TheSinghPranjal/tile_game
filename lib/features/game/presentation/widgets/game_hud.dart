@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/l10n/l10n.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/common.dart';
 import '../../../../shared/widgets/decor.dart';
@@ -36,7 +37,10 @@ class GameTopBar extends ConsumerWidget {
       gameControllerProvider.select((s) => s.remainingTiles),
     );
 
-    const plum = Color(0xFF4A1C7A);
+    final l = context.l10n;
+    final palette = context.palette;
+    final plum = palette.onPanel;
+    final muted = palette.onPanelMuted;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
       child: Row(
@@ -44,7 +48,7 @@ class GameTopBar extends ConsumerWidget {
           RoundIconButton(
             icon: Icons.arrow_back_rounded,
             onPressed: onBack,
-            tooltip: 'Back',
+            tooltip: l.back,
             color: plum,
           ),
           const SizedBox(width: 10),
@@ -52,7 +56,7 @@ class GameTopBar extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.fromLTRB(16, 9, 16, 11),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.95),
+                color: palette.panel,
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: const [
                   BoxShadow(
@@ -82,7 +86,7 @@ class GameTopBar extends ConsumerWidget {
                                   fit: BoxFit.scaleDown,
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    'Level $level',
+                                    l.levelLabel(level),
                                     style: fredoka(19, 700, plum),
                                   ),
                                 ),
@@ -94,18 +98,14 @@ class GameTopBar extends ConsumerWidget {
                                   margin: const EdgeInsets.symmetric(
                                     horizontal: 8,
                                   ),
-                                  color: const Color(0xFFD9D0E4),
+                                  color: palette.divider,
                                 ),
                                 Flexible(
                                   child: Text(
-                                    template,
+                                    l.layoutName(template),
                                     overflow: TextOverflow.ellipsis,
                                     softWrap: false,
-                                    style: fredoka(
-                                      13.5,
-                                      500,
-                                      const Color(0xFF8A7F99),
-                                    ),
+                                    style: fredoka(13.5, 500, muted),
                                   ),
                                 ),
                               ],
@@ -116,7 +116,8 @@ class GameTopBar extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Text(
                         '$remaining',
-                        style: fredoka(12.5, 600, const Color(0xFF8A7F99))
+                        semanticsLabel: l.tilesLeft(remaining),
+                        style: fredoka(12.5, 600, muted)
                             .copyWith(
                               fontFeatures: const [
                                 FontFeature.tabularFigures(),
@@ -124,13 +125,9 @@ class GameTopBar extends ConsumerWidget {
                             ),
                       ),
                       const SizedBox(width: 2),
-                      const Icon(
-                        Icons.grid_view_rounded,
-                        size: 12,
-                        color: Color(0xFF8A7F99),
-                      ),
+                      Icon(Icons.grid_view_rounded, size: 12, color: muted),
                       const SizedBox(width: 10),
-                      const Icon(Icons.timer_outlined, size: 17, color: plum),
+                      Icon(Icons.timer_outlined, size: 17, color: plum),
                       const SizedBox(width: 3),
                       Text(
                         formatClock(elapsed),
@@ -150,7 +147,7 @@ class GameTopBar extends ConsumerWidget {
           RoundIconButton(
             icon: Icons.pause_rounded,
             onPressed: onMenu,
-            tooltip: 'Pause & settings',
+            tooltip: l.pauseAndSettings,
             color: plum,
           ),
         ],
@@ -214,7 +211,7 @@ class BoosterBar extends ConsumerWidget {
   final Future<void> Function(BoosterType) onBooster;
   const BoosterBar({super.key, required this.onBooster});
 
-  static const _icons = {
+  static const icons = {
     BoosterType.hint: (
       Icons.lightbulb_rounded,
       [Color(0xFFFFE066), Color(0xFFFFA000)],
@@ -258,11 +255,11 @@ class BoosterBar extends ConsumerWidget {
     final s = ref.watch(gameControllerProvider);
 
     Widget button(BoosterType t, {bool active = false, bool enabled = true}) {
-      final (icon, colors) = _icons[t]!;
+      final (icon, colors) = icons[t]!;
       final (fill, depth) = _fills[t]!;
       return Expanded(
         child: _BoosterButton(
-          label: t.label,
+          label: context.l10n.booster(t),
           icon: icon,
           colors: colors,
           fill: fill,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/game_constants.dart';
+import '../../../../core/l10n/l10n.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/common.dart';
 import '../../../boosters/domain/booster.dart';
@@ -71,7 +72,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final action = await showModalBottomSheet<PauseAction>(
       context: context,
       showDragHandle: true,
-      backgroundColor: AppColors.cream,
       isScrollControlled: true,
       builder: (_) => const PauseSheet(settings: SettingsPanel()),
     );
@@ -81,11 +81,15 @@ class _GameScreenState extends ConsumerState<GameScreen>
         final ok = await showDialog<bool>(
           context: context,
           builder: (c) => AlertDialog(
-            title: const Text('Restart level?'),
-            content: const Text('Your current progress on this board will be lost.'),
+            title: Text(c.l10n.restartLevelTitle),
+            content: Text(c.l10n.restartLevelBody),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-              FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Restart')),
+              TextButton(
+                  onPressed: () => Navigator.pop(c, false),
+                  child: Text(c.l10n.cancel)),
+              FilledButton(
+                  onPressed: () => Navigator.pop(c, true),
+                  child: Text(c.l10n.restart)),
             ],
           ),
         );
@@ -187,7 +191,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(
-          content: Text(msg),
+          content: Text(context.l10n.message(msg)),
           duration: const Duration(seconds: 2),
         ));
     });
@@ -218,6 +222,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
               filterQuality: FilterQuality.medium,
             ),
           ),
+          // Evening tint in dark mode.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ColoredBox(color: context.palette.backdropScrim),
+            ),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -246,17 +256,19 @@ class _LoadingBoard extends StatelessWidget {
   const _LoadingBoard();
 
   @override
-  Widget build(BuildContext context) => const Center(
+  Widget build(BuildContext context) => Center(
         child: Pill(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            SizedBox(
+            const SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2.5)),
-            SizedBox(width: 12),
-            Text('Arranging tiles…',
-                style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.ink)),
+            const SizedBox(width: 12),
+            Text(context.l10n.arrangingTiles,
+                style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: context.palette.onPanel)),
           ]),
         ),
       );
@@ -269,9 +281,9 @@ class _ErrorBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('Something went wrong building this board.'),
+          Pill(child: Text(context.l10n.buildError)),
           const SizedBox(height: 12),
-          FilledButton(onPressed: onRetry, child: const Text('Try again')),
+          FilledButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
         ]),
       );
 }

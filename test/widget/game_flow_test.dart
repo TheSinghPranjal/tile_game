@@ -1,3 +1,4 @@
+import 'package:tile_game/core/audio/game_audio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,12 +15,15 @@ import 'package:tile_game/main.dart';
 
 Future<ProviderContainer> _launch(WidgetTester tester,
     {Map<String, Object> prefs = const {}}) async {
-  SharedPreferences.setMockInitialValues(prefs);
+  // The How to play guide is covered by its own test.
+  SharedPreferences.setMockInitialValues(
+      {'settings.seenTutorial': true, ...prefs});
   final sp = await SharedPreferences.getInstance();
   await tester.binding.setSurfaceSize(const Size(400, 860));
   await tester.pumpWidget(ProviderScope(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(sp),
+      gameAudioProvider.overrideWithValue(const SilentAudio()),
       levelRepositoryProvider.overrideWithValue(LevelRepository(inline: true)),
       backgroundRunnerProvider.overrideWithValue(
           <Q, R>(ComputeCallback<Q, R> cb, Q msg) async => cb(msg)),

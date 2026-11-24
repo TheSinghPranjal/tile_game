@@ -71,31 +71,156 @@ TextStyle fredoka(double size, double weight, Color color, {double? height}) =>
       height: height,
     );
 
+/// Semantic colours that differ between light and dark mode. Widgets read
+/// these through `context.palette` instead of hard-coding colours.
+@immutable
+class GamePalette extends ThemeExtension<GamePalette> {
+  /// Floating panels (top bar, info card, round buttons).
+  final Color panel;
+
+  /// Primary text / icons on panels.
+  final Color onPanel;
+
+  /// Secondary text on panels.
+  final Color onPanelMuted;
+
+  /// Hairlines and dividers on panels.
+  final Color divider;
+
+  /// Tint laid over the painted backgrounds (transparent in light mode).
+  final Color backdropScrim;
+
+  /// Tile face gradient (top, bottom).
+  final Color tileFaceTop;
+  final Color tileFaceBottom;
+
+  const GamePalette({
+    required this.panel,
+    required this.onPanel,
+    required this.onPanelMuted,
+    required this.divider,
+    required this.backdropScrim,
+    required this.tileFaceTop,
+    required this.tileFaceBottom,
+  });
+
+  static const light = GamePalette(
+    panel: Color(0xF2FFFFFF),
+    onPanel: Color(0xFF4A1C7A),
+    onPanelMuted: Color(0xFF8A7F99),
+    divider: Color(0xFFD9D0E4),
+    backdropScrim: Color(0x00000000),
+    tileFaceTop: Color(0xFFFFFEFA),
+    tileFaceBottom: Color(0xFFF7EFE2),
+  );
+
+  static const dark = GamePalette(
+    panel: Color(0xF0251D36),
+    onPanel: Color(0xFFE7DCFF),
+    onPanelMuted: Color(0xFFA99DC2),
+    divider: Color(0xFF41365A),
+    backdropScrim: Color(0x990B0820),
+    tileFaceTop: Color(0xFFEDE7DA),
+    tileFaceBottom: Color(0xFFDCD3C2),
+  );
+
+  @override
+  GamePalette copyWith({
+    Color? panel,
+    Color? onPanel,
+    Color? onPanelMuted,
+    Color? divider,
+    Color? backdropScrim,
+    Color? tileFaceTop,
+    Color? tileFaceBottom,
+  }) =>
+      GamePalette(
+        panel: panel ?? this.panel,
+        onPanel: onPanel ?? this.onPanel,
+        onPanelMuted: onPanelMuted ?? this.onPanelMuted,
+        divider: divider ?? this.divider,
+        backdropScrim: backdropScrim ?? this.backdropScrim,
+        tileFaceTop: tileFaceTop ?? this.tileFaceTop,
+        tileFaceBottom: tileFaceBottom ?? this.tileFaceBottom,
+      );
+
+  @override
+  GamePalette lerp(GamePalette? other, double t) {
+    if (other == null) return this;
+    return GamePalette(
+      panel: Color.lerp(panel, other.panel, t)!,
+      onPanel: Color.lerp(onPanel, other.onPanel, t)!,
+      onPanelMuted: Color.lerp(onPanelMuted, other.onPanelMuted, t)!,
+      divider: Color.lerp(divider, other.divider, t)!,
+      backdropScrim: Color.lerp(backdropScrim, other.backdropScrim, t)!,
+      tileFaceTop: Color.lerp(tileFaceTop, other.tileFaceTop, t)!,
+      tileFaceBottom: Color.lerp(tileFaceBottom, other.tileFaceBottom, t)!,
+    );
+  }
+}
+
+extension PaletteContext on BuildContext {
+  GamePalette get palette =>
+      Theme.of(this).extension<GamePalette>() ?? GamePalette.light;
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+}
+
 class AppTheme {
   const AppTheme._();
 
-  static ThemeData light() {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF7A5CFA),
-      brightness: Brightness.light,
-    ).copyWith(surface: AppColors.cream);
+  static ThemeData light() => _build(
+        ColorScheme.fromSeed(
+          seedColor: const Color(0xFF7A5CFA),
+          brightness: Brightness.light,
+        ).copyWith(
+          surface: AppColors.cream,
+          onSurface: AppColors.ink,
+          onSurfaceVariant: AppColors.inkSoft,
+        ),
+        GamePalette.light,
+      );
+
+  static ThemeData dark() => _build(
+        ColorScheme.fromSeed(
+          seedColor: const Color(0xFF7A5CFA),
+          brightness: Brightness.dark,
+        ).copyWith(
+          surface: const Color(0xFF1B1626),
+          surfaceContainerHighest: const Color(0xFF2C2440),
+          onSurface: const Color(0xFFF1EBFF),
+          onSurfaceVariant: const Color(0xFFB6ABCB),
+        ),
+        GamePalette.dark,
+      );
+
+  static ThemeData _build(ColorScheme scheme, GamePalette palette) {
+    final on = scheme.onSurface;
     return ThemeData(
       useMaterial3: true,
+      brightness: scheme.brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor: AppColors.cream,
-      fontFamily: null,
-      textTheme: const TextTheme(
+      scaffoldBackgroundColor: scheme.surface,
+      extensions: [palette],
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.surface,
+        foregroundColor: on,
+        surfaceTintColor: Colors.transparent,
+      ),
+      textTheme: TextTheme(
         displaySmall: TextStyle(
-            fontWeight: FontWeight.w900, color: AppColors.ink, letterSpacing: -0.5),
-        headlineSmall:
-            TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink),
-        titleLarge: TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink),
-        titleMedium: TextStyle(fontWeight: FontWeight.w700, color: AppColors.ink),
-        bodyMedium: TextStyle(color: AppColors.inkSoft),
+            fontWeight: FontWeight.w900, color: on, letterSpacing: -0.5),
+        headlineSmall: TextStyle(fontWeight: FontWeight.w800, color: on),
+        titleLarge: TextStyle(fontWeight: FontWeight.w800, color: on),
+        titleMedium: TextStyle(fontWeight: FontWeight.w700, color: on),
+        bodyMedium: TextStyle(color: scheme.onSurfaceVariant),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.cream,
+        backgroundColor: scheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -106,7 +231,10 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.ink,
+        backgroundColor: scheme.brightness == Brightness.dark
+            ? const Color(0xFF3A3052)
+            : AppColors.ink,
+        contentTextStyle: const TextStyle(color: Colors.white),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );

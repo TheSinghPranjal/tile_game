@@ -1,39 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../domain/game_settings.dart';
+import '../../../core/l10n/l10n.dart';
+import '../../help/presentation/how_to_play_screen.dart';
+import 'settings_screen.dart';
 
-/// Toggle list reused by the pause sheet and the home-screen settings.
+/// Quick settings shown in the in-game pause sheet: the audio switches plus
+/// links to the full settings page and the How to play guide.
 class SettingsPanel extends ConsumerWidget {
   const SettingsPanel({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final s = ref.watch(settingsProvider);
-    final n = ref.read(settingsProvider.notifier);
-    Widget tile(String title, String subtitle, bool value, IconData icon,
-            ValueChanged<bool> onChanged) =>
-        SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          secondary: Icon(icon),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: Text(subtitle),
-          value: value,
-          onChanged: onChanged,
-        );
+    final l = context.l10n;
+    final primary = Theme.of(context).colorScheme.primary;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        tile('Sound', 'Soft click on taps and matches', s.sound,
-            Icons.volume_up_rounded, (v) => n.update(s.copyWith(sound: v))),
-        tile('Haptics', 'Vibration feedback', s.haptics, Icons.vibration_rounded,
-            (v) => n.update(s.copyWith(haptics: v))),
-        tile('Dim blocked tiles', 'Make free tiles easier to spot',
-            s.dimBlockedTiles, Icons.contrast_rounded,
-            (v) => n.update(s.copyWith(dimBlockedTiles: v))),
-        tile('Reduce motion', 'Fewer animations and particles', s.reduceMotion,
-            Icons.motion_photos_off_rounded,
-            (v) => n.update(s.copyWith(reduceMotion: v))),
+        ...AudioToggles.tiles(context, ref),
+        const Divider(height: 8),
+        ListTile(
+          leading: Icon(Icons.menu_book_rounded, color: primary),
+          title: Text(l.howToPlay,
+              style: const TextStyle(fontWeight: FontWeight.w700)),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const HowToPlayScreen())),
+        ),
+        ListTile(
+          leading: Icon(Icons.tune_rounded, color: primary),
+          title: Text(l.allSettings,
+              style: const TextStyle(fontWeight: FontWeight.w700)),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen())),
+        ),
       ],
     );
   }
