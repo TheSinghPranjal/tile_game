@@ -50,7 +50,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeInfo =>
-      'Tap two identical FREE tiles to clear them. A tile is free when nothing sits on top of it and its left or right side is open. Long-press any tile to see what is blocking it.';
+      'Tap two identical FREE tiles to clear them. A tile is free when nothing sits on top of it. Long-press any tile to see what is covering it.';
 
   @override
   String levelLabel(int level) {
@@ -242,7 +242,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htpBody2 =>
-      'A tile is free when nothing sits on top of it and its left or right side is open. Blocked tiles can\'t be picked.';
+      'A tile is free when nothing sits on top of it, even if other tiles touch its sides. Covered tiles can\'t be picked.';
 
   @override
   String get htpFree => 'Free';
@@ -523,6 +523,114 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shapeCup => 'Cup';
+
+  @override
+  String get shapeLeaf => 'Leaf';
+
+  @override
+  String get shapeDrop => 'Drop';
+
+  @override
+  String get shapeArrow => 'Arrow';
+
+  @override
+  String get shapeMoon => 'Moon';
+
+  @override
+  String get shapeKite => 'Kite';
+
+  @override
+  String get shapeBowTie => 'Bow Tie';
+
+  @override
+  String get shapeTulip => 'Tulip';
+
+  @override
+  String get shapeBone => 'Bone';
+
+  @override
+  String get shapeShield => 'Shield';
+
+  @override
+  String get shapeMitten => 'Mitten';
+
+  @override
+  String get shapeTeapot => 'Teapot';
+
+  @override
+  String get shapePine => 'Pine';
+
+  @override
+  String get shapeLantern => 'Lantern';
+
+  @override
+  String get shapeFox => 'Fox';
+
+  @override
+  String get shapeWhale => 'Whale';
+
+  @override
+  String get shapeCloud => 'Cloud';
+
+  @override
+  String get shapePear => 'Pear';
+
+  @override
+  String get shapeCastle => 'Castle';
+
+  @override
+  String get shapeTrophy => 'Trophy';
+
+  @override
+  String get shapeHexagon => 'Hexagon';
+
+  @override
+  String get shapeLadybug => 'Ladybug';
+
+  @override
+  String get shapeBird => 'Bird';
+
+  @override
+  String get shapeBigHeart => 'Big Heart';
+
+  @override
+  String get shapeElephant => 'Elephant';
+
+  @override
+  String get shapeBigStar => 'Big Star';
+
+  @override
+  String get shapeSpaceship => 'Spaceship';
+
+  @override
+  String get shapeBigFlower => 'Big Flower';
+
+  @override
+  String get shapeOctopus => 'Octopus';
+
+  @override
+  String get shapeBigTree => 'Big Tree';
+
+  @override
+  String get shapeBigCastle => 'Big Castle';
+
+  @override
+  String get shapeWave => 'Wave';
+
+  @override
+  String get shapePenguin => 'Penguin';
+
+  @override
+  String get shapeBalloon => 'Balloon';
+
+  @override
+  String get shapeTrain => 'Train';
+
+  @override
+  String get shapeSnowman => 'Snowman';
+
+  @override
+  String get shapeBee => 'Bee';
 
   @override
   String get themeFruits => 'Fruit Market';

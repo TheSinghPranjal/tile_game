@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -315,6 +316,30 @@ class BoosterBar extends ConsumerWidget {
                     BoosterType.undo,
                     enabled: s.session?.canUndo ?? false,
                   ),
+                  // Debug builds only. `kDebugMode` is a compile-time
+                  // constant, so this button is stripped from release
+                  // (prod .aab / .apk / .ipa) builds entirely.
+                  if (kDebugMode)
+                    Expanded(
+                      child: _BoosterButton(
+                        key: const ValueKey('debug-autoplay'),
+                        label: s.autoPlaying ? 'Stop' : 'Auto',
+                        icon: s.autoPlaying
+                            ? Icons.stop_rounded
+                            : Icons.smart_toy_rounded,
+                        colors: const [Color(0xFF7BE495), Color(0xFF1E9E4A)],
+                        fill: const [Color(0xFFE2FBE8), Color(0xFF9BE3AE)],
+                        depth: const Color(0xFF3FA35E),
+                        count: null,
+                        active: s.autoPlaying,
+                        enabled:
+                            s.autoPlaying ||
+                            (s.isInteractive && !(s.board?.isCleared ?? true)),
+                        onTap: () => ref
+                            .read(gameControllerProvider.notifier)
+                            .toggleAutoPlay(),
+                      ),
+                    ),
                   button(BoosterType.shuffle),
                   button(BoosterType.magic, active: s.magicArmed),
                 ],
@@ -387,12 +412,14 @@ class _BoosterButton extends StatefulWidget {
   final List<Color> colors;
   final List<Color> fill;
   final Color depth;
-  final int count;
+  /// Badge value; null hides the badge.
+  final int? count;
   final bool active;
   final bool enabled;
   final VoidCallback onTap;
 
   const _BoosterButton({
+    super.key,
     required this.label,
     required this.icon,
     required this.colors,
@@ -481,7 +508,8 @@ class _BoosterButtonState extends State<_BoosterButton> {
                     ],
                   ),
                 ),
-                Positioned(
+                if (w.count != null)
+                  Positioned(
                   top: -9,
                   right: -5,
                   child: Container(
@@ -493,7 +521,7 @@ class _BoosterButtonState extends State<_BoosterButton> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: w.count > 0
+                        colors: w.count! > 0
                             ? const [Color(0xFFE64BE8), Color(0xFFB01BB8)]
                             : const [Color(0xFFB0A8B8), Color(0xFF8A8294)],
                       ),

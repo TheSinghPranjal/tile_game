@@ -17,6 +17,9 @@ enum ShapeCategory {
   const ShapeCategory(this.label);
 }
 
+/// Rough board size of a picture; season two rotates through all three.
+enum ShapeSize { compact, medium, large }
+
 class ShapeArt {
   final String name;
   final ShapeCategory category;
@@ -53,6 +56,7 @@ class ShapeLibrary {
     ...numbers,
     ...animals,
     ...objects,
+    ...seasonTwo,
   ];
 
   /// Compact shapes for the first levels.
@@ -697,5 +701,352 @@ class ShapeLibrary {
       '..###....',
       '#######..',
     ]),
+  ];
+
+  // ------------------------------------------------- season two (1001+) --
+
+  /// Season two: Small pictures (about 16-28 tiles per layer).
+  static const compact = <ShapeArt>[
+    ShapeArt('Leaf', ShapeCategory.object, [
+      '..##',
+      '.###',
+      '####',
+      '####',
+      '###.',
+      '##..',
+    ]),
+    ShapeArt('Drop', ShapeCategory.object, [
+      '..#..',
+      '.###.',
+      '#####',
+      '#####',
+      '.###.',
+    ]),
+    ShapeArt('Arrow', ShapeCategory.object, [
+      '..#...',
+      '..##..',
+      '######',
+      '######',
+      '..##..',
+      '..#...',
+    ]),
+    ShapeArt('Moon', ShapeCategory.object, [
+      '.####',
+      '###..',
+      '##...',
+      '##...',
+      '###..',
+      '.####',
+    ]),
+    ShapeArt('Kite', ShapeCategory.object, [
+      '..##..',
+      '.####.',
+      '######',
+      '.####.',
+      '..##..',
+      '..##..',
+    ]),
+    ShapeArt('Bow Tie', ShapeCategory.object, [
+      '#....#',
+      '##..##',
+      '######',
+      '######',
+      '##..##',
+      '#....#',
+    ]),
+    ShapeArt('Tulip', ShapeCategory.object, [
+      '#.##.#',
+      '######',
+      '######',
+      '.####.',
+      '..##..',
+      '..##..',
+    ]),
+    ShapeArt('Bone', ShapeCategory.object, [
+      '##..##',
+      '######',
+      '.####.',
+      '.####.',
+      '######',
+      '##..##',
+    ]),
+    ShapeArt('Shield', ShapeCategory.object, [
+      '######',
+      '######',
+      '######',
+      '.####.',
+      '..##..',
+    ]),
+    ShapeArt('Mitten', ShapeCategory.object, [
+      '.###.',
+      '.###.',
+      '####.',
+      '#####',
+      '.####',
+      '.###.',
+    ]),
+  ];
+
+  /// Season two: Medium pictures (about 26-37 tiles per layer).
+  static const medium = <ShapeArt>[
+    ShapeArt('Teapot', ShapeCategory.object, [
+      '...#...',
+      '..###..',
+      '.#####.',
+      '######.',
+      '#######',
+      '.#####.',
+      '..###..',
+    ]),
+    ShapeArt('Pine', ShapeCategory.object, [
+      '...#...',
+      '..###..',
+      '.#####.',
+      '..###..',
+      '.#####.',
+      '#######',
+      '...#...',
+      '...#...',
+    ]),
+    ShapeArt('Lantern', ShapeCategory.object, [
+      '..###..',
+      '.#####.',
+      '#######',
+      '#######',
+      '#######',
+      '.#####.',
+      '..###..',
+    ]),
+    ShapeArt('Fox', ShapeCategory.animal, [
+      '#.....#',
+      '##...##',
+      '#######',
+      '#######',
+      '.#####.',
+      '..###..',
+      '...#...',
+    ]),
+    ShapeArt('Whale', ShapeCategory.animal, [
+      '......#',
+      '.....##',
+      '######.',
+      '#######',
+      '#######',
+      '.#####.',
+    ]),
+    ShapeArt('Cloud', ShapeCategory.object, [
+      '...##..',
+      '.#####.',
+      '#######',
+      '#######',
+      '.######',
+    ]),
+    ShapeArt('Pear', ShapeCategory.object, [
+      '...#...',
+      '..##...',
+      '..###..',
+      '.#####.',
+      '#######',
+      '#######',
+      '.#####.',
+    ]),
+    ShapeArt('Castle', ShapeCategory.object, [
+      '#.#.#.#',
+      '#######',
+      '#######',
+      '##...##',
+      '##...##',
+    ]),
+    ShapeArt('Trophy', ShapeCategory.object, [
+      '#######',
+      '#######',
+      '.#####.',
+      '..###..',
+      '...#...',
+      '..###..',
+      '.#####.',
+    ]),
+    ShapeArt('Hexagon', ShapeCategory.object, [
+      '..###..',
+      '.#####.',
+      '#######',
+      '#######',
+      '.#####.',
+      '..###..',
+    ]),
+    ShapeArt('Ladybug', ShapeCategory.animal, [
+      '..###..',
+      '.#####.',
+      '#######',
+      '#######',
+      '#######',
+      '.#####.',
+      '..#.#..',
+    ]),
+    ShapeArt('Bird', ShapeCategory.animal, [
+      '.##....',
+      '####...',
+      '.######',
+      '..#####',
+      '...####',
+      '....##.',
+    ]),
+  ];
+
+  /// Season two: Large pictures (about 38-60 tiles per layer).
+  static const large = <ShapeArt>[
+    ShapeArt('Big Heart', ShapeCategory.object, [
+      '.###.###.',
+      '#########',
+      '#########',
+      '#########',
+      '.#######.',
+      '..#####..',
+      '...###...',
+      '....#....',
+    ]),
+    ShapeArt('Elephant', ShapeCategory.animal, [
+      '.....###.',
+      '..#######',
+      '.########',
+      '#########',
+      '#########',
+      '#.##..##.',
+      '#.##..##.',
+    ]),
+    ShapeArt('Big Star', ShapeCategory.object, [
+      '....#....',
+      '...###...',
+      '..#####..',
+      '#########',
+      '.#######.',
+      '..#####..',
+      '.###.###.',
+      '.##...##.',
+    ]),
+    ShapeArt('Spaceship', ShapeCategory.object, [
+      '....#....',
+      '...###...',
+      '...###...',
+      '..#####..',
+      '.#######.',
+      '#########',
+      '##.###.##',
+      '#...#...#',
+    ]),
+    ShapeArt('Big Flower', ShapeCategory.object, [
+      '...###...',
+      '..#####..',
+      '.##.#.##.',
+      '#########',
+      '#########',
+      '.##.#.##.',
+      '..#####..',
+      '...###...',
+    ]),
+    ShapeArt('Octopus', ShapeCategory.animal, [
+      '..#####..',
+      '.#######.',
+      '#########',
+      '#########',
+      '.#######.',
+      '#.#.#.#.#',
+      '#.#.#.#.#',
+    ]),
+    ShapeArt('Big Tree', ShapeCategory.object, [
+      '....#....',
+      '...###...',
+      '..#####..',
+      '.#######.',
+      '..#####..',
+      '.#######.',
+      '#########',
+      '....#....',
+      '...###...',
+    ]),
+    ShapeArt('Big Castle', ShapeCategory.object, [
+      '#.#.#.#.#',
+      '#########',
+      '#########',
+      '.#######.',
+      '.###.###.',
+      '.##...##.',
+      '.##...##.',
+    ]),
+    ShapeArt('Wave', ShapeCategory.object, [
+      '##.....##',
+      '###...###',
+      '####.####',
+      '#########',
+      '.#######.',
+      '..#####..',
+    ]),
+    ShapeArt('Penguin', ShapeCategory.animal, [
+      '...###...',
+      '..#####..',
+      '..##.##..',
+      '.#######.',
+      '#########',
+      '.#######.',
+      '.#######.',
+      '..#####..',
+      '..##.##..',
+    ]),
+    ShapeArt('Balloon', ShapeCategory.object, [
+      '..#####..',
+      '.#######.',
+      '#########',
+      '#########',
+      '#########',
+      '.#######.',
+      '..#####..',
+      '...#.#...',
+      '...###...',
+      '...###...',
+    ]),
+    ShapeArt('Train', ShapeCategory.object, [
+      '##.......',
+      '##..####.',
+      '#########',
+      '#########',
+      '#########',
+      '.##...##.',
+    ]),
+    ShapeArt('Snowman', ShapeCategory.object, [
+      '...###...',
+      '..#####..',
+      '...###...',
+      '.#######.',
+      '#########',
+      '#########',
+      '.#######.',
+      '..#####..',
+    ]),
+    ShapeArt('Bee', ShapeCategory.animal, [
+      '..##.##..',
+      '...###...',
+      '.#######.',
+      '#########',
+      '#########',
+      '.#######.',
+      '...###...',
+      '....#....',
+    ]),
+  ];
+
+  /// Every season-two picture.
+  static const seasonTwo = <ShapeArt>[...compact, ...medium, ...large];
+
+  /// Size class of any picture, judged by its tile count.
+  static ShapeSize sizeOf(ShapeArt a) => a.cellCount < 30
+      ? ShapeSize.compact
+      : a.cellCount < 38
+      ? ShapeSize.medium
+      : ShapeSize.large;
+
+  /// All pictures (both seasons) in size class [s].
+  static List<ShapeArt> ofSize(ShapeSize s, {bool seasonTwoOnly = false}) => [
+    for (final a in seasonTwoOnly ? seasonTwo : all)
+      if (sizeOf(a) == s) a,
   ];
 }

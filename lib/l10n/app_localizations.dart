@@ -169,7 +169,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeInfo.
   ///
   /// In en, this message translates to:
-  /// **'Tap two identical FREE tiles to clear them. A tile is free when nothing sits on top of it and its left or right side is open. Long-press any tile to see what is blocking it.'**
+  /// **'Tap two identical FREE tiles to clear them. A tile is free when nothing sits on top of it. Long-press any tile to see what is covering it.'**
   String get homeInfo;
 
   /// No description provided for @levelLabel.
@@ -511,7 +511,7 @@ abstract class AppLocalizations {
   /// No description provided for @htpBody2.
   ///
   /// In en, this message translates to:
-  /// **'A tile is free when nothing sits on top of it and its left or right side is open. Blocked tiles can\'t be picked.'**
+  /// **'A tile is free when nothing sits on top of it, even if other tiles touch its sides. Covered tiles can\'t be picked.'**
   String get htpBody2;
 
   /// No description provided for @htpFree.
@@ -1047,6 +1047,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cup'**
   String get shapeCup;
+
+  /// No description provided for @shapeLeaf.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaf'**
+  String get shapeLeaf;
+
+  /// No description provided for @shapeDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop'**
+  String get shapeDrop;
+
+  /// No description provided for @shapeArrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrow'**
+  String get shapeArrow;
+
+  /// No description provided for @shapeMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon'**
+  String get shapeMoon;
+
+  /// No description provided for @shapeKite.
+  ///
+  /// In en, this message translates to:
+  /// **'Kite'**
+  String get shapeKite;
+
+  /// No description provided for @shapeBowTie.
+  ///
+  /// In en, this message translates to:
+  /// **'Bow Tie'**
+  String get shapeBowTie;
+
+  /// No description provided for @shapeTulip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tulip'**
+  String get shapeTulip;
+
+  /// No description provided for @shapeBone.
+  ///
+  /// In en, this message translates to:
+  /// **'Bone'**
+  String get shapeBone;
+
+  /// No description provided for @shapeShield.
+  ///
+  /// In en, this message translates to:
+  /// **'Shield'**
+  String get shapeShield;
+
+  /// No description provided for @shapeMitten.
+  ///
+  /// In en, this message translates to:
+  /// **'Mitten'**
+  String get shapeMitten;
+
+  /// No description provided for @shapeTeapot.
+  ///
+  /// In en, this message translates to:
+  /// **'Teapot'**
+  String get shapeTeapot;
+
+  /// No description provided for @shapePine.
+  ///
+  /// In en, this message translates to:
+  /// **'Pine'**
+  String get shapePine;
+
+  /// No description provided for @shapeLantern.
+  ///
+  /// In en, this message translates to:
+  /// **'Lantern'**
+  String get shapeLantern;
+
+  /// No description provided for @shapeFox.
+  ///
+  /// In en, this message translates to:
+  /// **'Fox'**
+  String get shapeFox;
+
+  /// No description provided for @shapeWhale.
+  ///
+  /// In en, this message translates to:
+  /// **'Whale'**
+  String get shapeWhale;
+
+  /// No description provided for @shapeCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud'**
+  String get shapeCloud;
+
+  /// No description provided for @shapePear.
+  ///
+  /// In en, this message translates to:
+  /// **'Pear'**
+  String get shapePear;
+
+  /// No description provided for @shapeCastle.
+  ///
+  /// In en, this message translates to:
+  /// **'Castle'**
+  String get shapeCastle;
+
+  /// No description provided for @shapeTrophy.
+  ///
+  /// In en, this message translates to:
+  /// **'Trophy'**
+  String get shapeTrophy;
+
+  /// No description provided for @shapeHexagon.
+  ///
+  /// In en, this message translates to:
+  /// **'Hexagon'**
+  String get shapeHexagon;
+
+  /// No description provided for @shapeLadybug.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladybug'**
+  String get shapeLadybug;
+
+  /// No description provided for @shapeBird.
+  ///
+  /// In en, this message translates to:
+  /// **'Bird'**
+  String get shapeBird;
+
+  /// No description provided for @shapeBigHeart.
+  ///
+  /// In en, this message translates to:
+  /// **'Big Heart'**
+  String get shapeBigHeart;
+
+  /// No description provided for @shapeElephant.
+  ///
+  /// In en, this message translates to:
+  /// **'Elephant'**
+  String get shapeElephant;
+
+  /// No description provided for @shapeBigStar.
+  ///
+  /// In en, this message translates to:
+  /// **'Big Star'**
+  String get shapeBigStar;
+
+  /// No description provided for @shapeSpaceship.
+  ///
+  /// In en, this message translates to:
+  /// **'Spaceship'**
+  String get shapeSpaceship;
+
+  /// No description provided for @shapeBigFlower.
+  ///
+  /// In en, this message translates to:
+  /// **'Big Flower'**
+  String get shapeBigFlower;
+
+  /// No description provided for @shapeOctopus.
+  ///
+  /// In en, this message translates to:
+  /// **'Octopus'**
+  String get shapeOctopus;
+
+  /// No description provided for @shapeBigTree.
+  ///
+  /// In en, this message translates to:
+  /// **'Big Tree'**
+  String get shapeBigTree;
+
+  /// No description provided for @shapeBigCastle.
+  ///
+  /// In en, this message translates to:
+  /// **'Big Castle'**
+  String get shapeBigCastle;
+
+  /// No description provided for @shapeWave.
+  ///
+  /// In en, this message translates to:
+  /// **'Wave'**
+  String get shapeWave;
+
+  /// No description provided for @shapePenguin.
+  ///
+  /// In en, this message translates to:
+  /// **'Penguin'**
+  String get shapePenguin;
+
+  /// No description provided for @shapeBalloon.
+  ///
+  /// In en, this message translates to:
+  /// **'Balloon'**
+  String get shapeBalloon;
+
+  /// No description provided for @shapeTrain.
+  ///
+  /// In en, this message translates to:
+  /// **'Train'**
+  String get shapeTrain;
+
+  /// No description provided for @shapeSnowman.
+  ///
+  /// In en, this message translates to:
+  /// **'Snowman'**
+  String get shapeSnowman;
+
+  /// No description provided for @shapeBee.
+  ///
+  /// In en, this message translates to:
+  /// **'Bee'**
+  String get shapeBee;
 
   /// No description provided for @themeFruits.
   ///

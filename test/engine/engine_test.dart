@@ -49,8 +49,31 @@ void main() {
       expect(inc, after.selectableTiles.toSet());
     });
 
-    test('3. a tile blocked on both left and right cannot be selected', () {
+    test('3. default rules: an uncovered tile flanked on both sides is free',
+        () {
+      // Regression: a tile with nothing on top must be tappable even when
+      // same-layer neighbours touch both of its sides.
       final s = board([(0, 0, 0, 1), (0, 1, 0, 2), (0, 2, 0, 1)]);
+      expect(s.isSelectable(1), isTrue);
+    });
+
+    test('3a. default rules: lower tile free once its own cover is gone', () {
+      // Upper tile 3 covers 0 only; tile 1 (between 0 and 2) is uncovered.
+      final s = board([
+        (0, 0, 0, 1),
+        (0, 1, 0, 2),
+        (0, 2, 0, 1),
+        (1, -0.5, 0, 2),
+      ]);
+      expect(s.isSelectable(0), isFalse);
+      expect(s.isSelectable(1), isTrue);
+      expect(s.isSelectable(3), isTrue);
+    });
+
+    test('3c. classic rules: tile blocked on both sides cannot be selected',
+        () {
+      final s = board([(0, 0, 0, 1), (0, 1, 0, 2), (0, 2, 0, 1)],
+          config: AvailabilityConfig.classic);
       expect(s.isSelectable(1), isFalse);
       expect(TileAvailabilityService.isLeftOpen(s.geometry, s.removed, 1),
           isFalse);
@@ -58,14 +81,16 @@ void main() {
           isFalse);
     });
 
-    test('3b. staggered neighbours (half row offset) still block sides', () {
+    test('3b. classic rules: staggered neighbours still block sides', () {
       // Middle tile at y=0.5 touches left tile at y=0 and right tile at y=1.
-      final s = board([(0, 0, 0, 1), (0, 1, 0.5, 2), (0, 2, 1, 1)]);
+      final s = board([(0, 0, 0, 1), (0, 1, 0.5, 2), (0, 2, 1, 1)],
+          config: AvailabilityConfig.classic);
       expect(s.isSelectable(1), isFalse);
     });
 
     test('4. a tile with one open side is selectable when not covered', () {
-      final s = board([(0, 0, 0, 1), (0, 1, 0, 2), (0, 2, 0, 1)]);
+      final s = board([(0, 0, 0, 1), (0, 1, 0, 2), (0, 2, 0, 1)],
+          config: AvailabilityConfig.classic);
       expect(s.isSelectable(0), isTrue);
       expect(s.isSelectable(2), isTrue);
       // Opening the right side frees the middle tile.
@@ -73,7 +98,8 @@ void main() {
     });
 
     test('tiles in different rows do not side-block each other', () {
-      final s = board([(0, 0, 0, 1), (0, 1, 1, 1), (0, 2, 0, 2), (0, 1, 0, 2)]);
+      final s = board([(0, 0, 0, 1), (0, 1, 1, 1), (0, 2, 0, 2), (0, 1, 0, 2)],
+          config: AvailabilityConfig.classic);
       // Tile 3 at (1,0) is between 0 and 2 on row 0 → blocked.
       expect(s.isSelectable(3), isFalse);
       // Tile 1 is alone on row 1.

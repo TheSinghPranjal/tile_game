@@ -5,7 +5,7 @@ class GameConstants {
   static const String appName = 'Tile Grove';
 
   /// Size of the campaign.
-  static const int totalLevels = 1000;
+  static const int totalLevels = 2000;
 
   // Animation timings.
   static const Duration selectDuration = Duration(milliseconds: 140);

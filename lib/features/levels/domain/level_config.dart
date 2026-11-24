@@ -67,6 +67,10 @@ class LevelConfig {
   /// The game has a fixed campaign of this many levels.
   static const int maxLevel = GameConstants.totalLevels;
 
+  /// Levels 1..[seasonOneLevels] are the original campaign; everything
+  /// after it is season two (new pictures, rotating board sizes).
+  static const int seasonOneLevels = 1000;
+
   /// Name shown in the top bar: the picture's title or the layout's name.
   String get displayName {
     final art = params.art;
@@ -104,6 +108,7 @@ class LevelConfig {
   /// are arranged as a letter, number, animal or object.
   factory LevelConfig.forLevel(int level) {
     assert(level >= 1);
+    if (level > seasonOneLevels) return LevelConfig._seasonTwo(level);
     final base = LevelConfig._layoutLevel(level);
     final rng = SeededRandom(SeededRandom.seedFrom([level, 0x5BA9E]));
     final art = _pictureFor(level, base.tier, rng);
@@ -369,6 +374,120 @@ class LevelConfig {
           minInitialPairs: 1,
         );
     }
+  }
+
+  /// Season two (levels 1001+): new pictures and board sizes that rotate
+  /// between compact, medium and large so consecutive levels feel
+  /// different. Depth grows slowly across the season.
+  factory LevelConfig._seasonTwo(int level) {
+    final base = LevelConfig._layoutLevel(level); // legend tier + theme
+    final rng = SeededRandom(SeededRandom.seedFrom([level, 0x52D2]));
+    int between(int lo, int hi) => lo + rng.nextInt(hi - lo + 1);
+    final t = ((level - seasonOneLevels - 1) / 999).clamp(0.0, 1.0);
+    final deeper = rng.nextBool(t) ? 1 : 0;
+    // compact, medium, large, medium, compact, large, ... (period 6).
+    const cycle = [
+      ShapeSize.compact,
+      ShapeSize.medium,
+      ShapeSize.large,
+      ShapeSize.medium,
+      ShapeSize.compact,
+      ShapeSize.large,
+    ];
+    final size = cycle[level % cycle.length];
+
+    // Three levels in four are pictures, mostly from the new set.
+    if (level % 4 != 0) {
+      final pool = ShapeLibrary.ofSize(size, seasonTwoOnly: rng.nextBool(0.75));
+      final art = pool[(level * 5 + rng.nextInt(pool.length)) % pool.length];
+      final layers = switch (size) {
+        ShapeSize.compact => between(4, 5) + deeper,
+        ShapeSize.medium => between(3, 5) + deeper,
+        ShapeSize.large => between(3, 4) + deeper,
+      };
+      final roll = rng.nextDouble();
+      final stack = roll < 0.35 + 0.25 * t
+          ? StackMode.quarterOffset
+          : roll < 0.7
+          ? StackMode.halfOffset
+          : StackMode.alternate;
+      return LevelConfig(
+        levelNumber: level,
+        tier: base.tier,
+        template: LayoutTemplate.shape,
+        params: LayoutParams(
+          cols: art.width,
+          rows: art.height,
+          layers: layers,
+          stackMode: stack,
+          art: art,
+        ),
+        minTiles: 4,
+        maxTiles: math.max(art.cellCount * 2, switch (size) {
+          ShapeSize.compact => 90,
+          ShapeSize.medium => 120,
+          ShapeSize.large => 150,
+        }),
+        symbolPoolSize: base.symbolPoolSize,
+        theme: base.theme,
+        preference: base.preference,
+        minPlayoutSuccess: base.minPlayoutSuccess,
+        minInitialPairs: base.minInitialPairs,
+      );
+    }
+
+    // Classic silhouettes, sized by the same rotation.
+    final templates = [
+      for (final v in LayoutTemplate.values)
+        if (v != LayoutTemplate.shape) v,
+    ];
+    final template = rng.nextBool(0.35)
+        ? LayoutTemplate.procedural
+        : templates[(level ~/ 4 + rng.nextInt(templates.length)) %
+              templates.length];
+    final (cols, rows, layers, minTiles, maxTiles) = switch (size) {
+      ShapeSize.compact => (
+        between(5, 6),
+        between(5, 7),
+        between(3, 4),
+        24,
+        72,
+      ),
+      ShapeSize.medium => (
+        between(7, 8),
+        between(7, 9),
+        between(4, 5),
+        44,
+        110,
+      ),
+      ShapeSize.large => (
+        between(9, 10),
+        between(9, 11),
+        between(5, 6),
+        70,
+        150,
+      ),
+    };
+    return LevelConfig(
+      levelNumber: level,
+      tier: base.tier,
+      template: template,
+      params: LayoutParams(
+        cols: cols,
+        rows: rows,
+        layers: layers + deeper,
+        staggerRows: rng.nextBool(0.3),
+        stackMode: _denseStack(template, rng, 0.4 + 0.3 * t),
+        overlap: rng.pick(const [0.5, 0.5, 0.4, 0.6]),
+      ),
+      minTiles: minTiles,
+      maxTiles: maxTiles,
+      symbolPoolSize: base.symbolPoolSize,
+      theme: base.theme,
+      preference: base.preference,
+      minPlayoutSuccess: base.minPlayoutSuccess,
+      minInitialPairs: base.minInitialPairs,
+    );
   }
 
   /// Image-5 style dense piles for tougher tiers. Templates whose silhouette

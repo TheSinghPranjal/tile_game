@@ -22,6 +22,7 @@ import '../../domain/services/game_session.dart';
 import '../../domain/services/hint_service.dart';
 import '../../domain/services/shuffle_service.dart';
 import '../../domain/services/tile_availability_service.dart';
+import '../../domain/solvers/level_solver.dart';
 import 'game_view_state.dart';
 
 // Solver-backed work runs off the UI thread (inline on web).
@@ -30,6 +31,10 @@ int? _computePartner((BoardState, int) a) =>
     const HintService().partnerFor(a.$1, a.$2);
 BoardState? _computeShuffle((BoardState, int) a) =>
     const ShuffleService().shuffle(a.$1, SeededRandom(a.$2));
+List<TilePair>? _computeSolution(BoardState s) {
+  final r = const LevelSolver(nodeBudget: 400000).solve(s);
+  return r.isSolved ? r.solution : null;
+}
 
 /// Runs solver-heavy work off the UI thread. Overridable for tests.
 typedef BackgroundRunner = Future<R> Function<Q, R>(
@@ -376,6 +381,78 @@ class GameController extends Notifier<GameViewState> {
 
   void dismissNoMoves() => state = state.copyWith(noMoves: false);
 
+  // ----------------------------------------------------- debug auto-play --
+
+  static const _autoTapDelay = Duration(milliseconds: 380);
+  static const _autoPairDelay = Duration(milliseconds: 520);
+
+  /// Debug builds only: toggles the game solving the current level by
+  /// itself, visibly selecting and matching each pair until it is cleared.
+  /// Compiled out of release builds ([kDebugMode] is a const `false`).
+  Future<void> toggleAutoPlay() async {
+    if (!kDebugMode) return;
+    if (state.autoPlaying) {
+      state = state.copyWith(autoPlaying: false);
+      return;
+    }
+    if (state.session == null || state.board?.isCleared != false) return;
+    state = state.copyWith(
+      autoPlaying: true,
+      selected: null,
+      hint: null,
+      magicArmed: false,
+      noMoves: false,
+      phase: state.isInteractive ? GamePhase.playing : state.phase,
+    );
+    final token = _loadToken;
+    bool alive() => ref.mounted && token == _loadToken && state.autoPlaying;
+
+    Future<bool> waitInteractive() async {
+      while (alive() && !state.isInteractive) {
+        if (state.phase == GamePhase.completed) return false;
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      return alive();
+    }
+
+    var shuffles = 0;
+    while (alive()) {
+      if (!await waitInteractive()) break;
+      final board = state.board;
+      if (board == null || board.isCleared) break;
+
+      final solution = await _run(_computeSolution, board);
+      if (!alive()) break;
+      if (solution == null) {
+        // The player got the board stuck: reshuffle (free) and retry.
+        if (++shuffles > 3) {
+          _toast(GameMessage.noWinningMoves);
+          break;
+        }
+        await shuffle(free: true);
+        continue;
+      }
+
+      for (final pair in solution) {
+        if (!await waitInteractive()) break;
+        final b = state.board!;
+        // Board changed under us (e.g. undo): re-plan from the new state.
+        if (!b.isSelectable(pair.a) || !b.isSelectable(pair.b)) break;
+        if (state.selected != null && state.selected != pair.a) {
+          tapTile(state.selected!); // deselect
+        }
+        if (state.selected != pair.a) tapTile(pair.a);
+        await Future<void>.delayed(_autoTapDelay);
+        if (!await waitInteractive()) break;
+        tapTile(pair.b);
+        await Future<void>.delayed(_autoPairDelay);
+      }
+    }
+    if (ref.mounted && token == _loadToken && state.autoPlaying) {
+      state = state.copyWith(autoPlaying: false);
+    }
+  }
+
   // ------------------------------------------------------------- internal --
 
   void _checkNoMoves() {
@@ -388,6 +465,7 @@ class GameController extends Notifier<GameViewState> {
 
   void _complete() {
     _clock?.cancel();
+    if (state.autoPlaying) state = state.copyWith(autoPlaying: false);
     final s = state;
     final reward = _progress.completeLevel(
       level: s.levelNumber,

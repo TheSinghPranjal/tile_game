@@ -50,7 +50,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get homeInfo =>
-      'दो एक जैसी खुली टाइलें टैप करके हटाएँ। टाइल तब खुली होती है जब उसके ऊपर कुछ न हो और उसका बायाँ या दायाँ किनारा खाली हो। किसी टाइल को देर तक दबाकर देखें कि उसे क्या रोक रहा है।';
+      'दो एक जैसी खुली टाइलें टैप करके हटाएँ। टाइल तब खुली होती है जब उसके ऊपर कुछ न हो। किसी टाइल को देर तक दबाकर देखें कि उसे क्या ढक रहा है।';
 
   @override
   String levelLabel(int level) {
@@ -241,7 +241,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get htpBody2 =>
-      'टाइल तब खुली है जब उस पर कुछ न हो और उसका बायाँ या दायाँ किनारा खाली हो। रुकी टाइलें नहीं चुनी जा सकतीं।';
+      'टाइल तब खुली है जब उस पर कुछ न हो, भले ही दूसरी टाइलें उसके किनारों को छू रही हों। ढकी हुई टाइलें नहीं चुनी जा सकतीं।';
 
   @override
   String get htpFree => 'खुली';
@@ -523,6 +523,114 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get shapeCup => 'प्याला';
+
+  @override
+  String get shapeLeaf => 'पत्ता';
+
+  @override
+  String get shapeDrop => 'बूँद';
+
+  @override
+  String get shapeArrow => 'तीर';
+
+  @override
+  String get shapeMoon => 'चाँद';
+
+  @override
+  String get shapeKite => 'पतंग';
+
+  @override
+  String get shapeBowTie => 'बो टाई';
+
+  @override
+  String get shapeTulip => 'ट्यूलिप';
+
+  @override
+  String get shapeBone => 'हड्डी';
+
+  @override
+  String get shapeShield => 'ढाल';
+
+  @override
+  String get shapeMitten => 'दस्ताना';
+
+  @override
+  String get shapeTeapot => 'केतली';
+
+  @override
+  String get shapePine => 'चीड़';
+
+  @override
+  String get shapeLantern => 'लालटेन';
+
+  @override
+  String get shapeFox => 'लोमड़ी';
+
+  @override
+  String get shapeWhale => 'व्हेल';
+
+  @override
+  String get shapeCloud => 'बादल';
+
+  @override
+  String get shapePear => 'नाशपाती';
+
+  @override
+  String get shapeCastle => 'किला';
+
+  @override
+  String get shapeTrophy => 'ट्रॉफी';
+
+  @override
+  String get shapeHexagon => 'षट्भुज';
+
+  @override
+  String get shapeLadybug => 'लेडीबग';
+
+  @override
+  String get shapeBird => 'चिड़िया';
+
+  @override
+  String get shapeBigHeart => 'बड़ा दिल';
+
+  @override
+  String get shapeElephant => 'हाथी';
+
+  @override
+  String get shapeBigStar => 'बड़ा तारा';
+
+  @override
+  String get shapeSpaceship => 'अंतरिक्ष यान';
+
+  @override
+  String get shapeBigFlower => 'बड़ा फूल';
+
+  @override
+  String get shapeOctopus => 'ऑक्टोपस';
+
+  @override
+  String get shapeBigTree => 'बड़ा पेड़';
+
+  @override
+  String get shapeBigCastle => 'बड़ा किला';
+
+  @override
+  String get shapeWave => 'लहर';
+
+  @override
+  String get shapePenguin => 'पेंगुइन';
+
+  @override
+  String get shapeBalloon => 'गुब्बारा';
+
+  @override
+  String get shapeTrain => 'रेलगाड़ी';
+
+  @override
+  String get shapeSnowman => 'स्नोमैन';
+
+  @override
+  String get shapeBee => 'मधुमक्खी';
 
   @override
   String get themeFruits => 'फल बाज़ार';

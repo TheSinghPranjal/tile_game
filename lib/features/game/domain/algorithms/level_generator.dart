@@ -29,7 +29,7 @@ class LevelGenerationException implements Exception {
 /// 3. legal removal sequence (positions)  6. certificate replay + difficulty
 class LevelGenerator {
   /// Bump whenever generation output changes, so saved games are invalidated.
-  static const int version = 6;
+  static const int version = 7;
 
   final LevelSolver solver;
   final RemovalSequenceGenerator sequencer;

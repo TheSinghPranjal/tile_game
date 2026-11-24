@@ -50,7 +50,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get homeInfo =>
-      'Toca dos fichas LIBRES iguales para quitarlas. Una ficha está libre si no tiene nada encima y su lado izquierdo o derecho está despejado. Mantén pulsada una ficha para ver qué la bloquea.';
+      'Toca dos fichas LIBRES iguales para quitarlas. Una ficha está libre si no tiene nada encima. Mantén pulsada una ficha para ver qué la cubre.';
 
   @override
   String levelLabel(int level) {
@@ -241,7 +241,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get htpBody2 =>
-      'Una ficha está libre si no tiene nada encima y su lado izquierdo o derecho está despejado. Las bloqueadas no se pueden elegir.';
+      'Una ficha está libre si no tiene nada encima, aunque otras fichas toquen sus lados. Las fichas cubiertas no se pueden elegir.';
 
   @override
   String get htpFree => 'Libre';
@@ -522,6 +522,114 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get shapeCup => 'Taza';
+
+  @override
+  String get shapeLeaf => 'Hoja';
+
+  @override
+  String get shapeDrop => 'Gota';
+
+  @override
+  String get shapeArrow => 'Flecha';
+
+  @override
+  String get shapeMoon => 'Luna';
+
+  @override
+  String get shapeKite => 'Cometa';
+
+  @override
+  String get shapeBowTie => 'Pajarita';
+
+  @override
+  String get shapeTulip => 'Tulipán';
+
+  @override
+  String get shapeBone => 'Hueso';
+
+  @override
+  String get shapeShield => 'Escudo';
+
+  @override
+  String get shapeMitten => 'Manopla';
+
+  @override
+  String get shapeTeapot => 'Tetera';
+
+  @override
+  String get shapePine => 'Pino';
+
+  @override
+  String get shapeLantern => 'Farol';
+
+  @override
+  String get shapeFox => 'Zorro';
+
+  @override
+  String get shapeWhale => 'Ballena';
+
+  @override
+  String get shapeCloud => 'Nube';
+
+  @override
+  String get shapePear => 'Pera';
+
+  @override
+  String get shapeCastle => 'Castillo';
+
+  @override
+  String get shapeTrophy => 'Trofeo';
+
+  @override
+  String get shapeHexagon => 'Hexágono';
+
+  @override
+  String get shapeLadybug => 'Mariquita';
+
+  @override
+  String get shapeBird => 'Pájaro';
+
+  @override
+  String get shapeBigHeart => 'Gran corazón';
+
+  @override
+  String get shapeElephant => 'Elefante';
+
+  @override
+  String get shapeBigStar => 'Gran estrella';
+
+  @override
+  String get shapeSpaceship => 'Nave espacial';
+
+  @override
+  String get shapeBigFlower => 'Gran flor';
+
+  @override
+  String get shapeOctopus => 'Pulpo';
+
+  @override
+  String get shapeBigTree => 'Gran árbol';
+
+  @override
+  String get shapeBigCastle => 'Gran castillo';
+
+  @override
+  String get shapeWave => 'Ola';
+
+  @override
+  String get shapePenguin => 'Pingüino';
+
+  @override
+  String get shapeBalloon => 'Globo';
+
+  @override
+  String get shapeTrain => 'Tren';
+
+  @override
+  String get shapeSnowman => 'Muñeco de nieve';
+
+  @override
+  String get shapeBee => 'Abeja';
 
   @override
   String get themeFruits => 'Mercado de frutas';

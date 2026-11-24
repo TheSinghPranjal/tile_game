@@ -20,7 +20,12 @@ class AvailabilityConfig {
   /// before the geometry is considered colliding/invalid.
   final double collisionTolerance;
 
+  /// Classic Mahjong side rule: a tile also needs a free left or right side.
+  /// Off by default – any tile with nothing on top of it can be tapped.
+  final bool sideBlocking;
+
   const AvailabilityConfig({
+    this.sideBlocking = false,
     this.coverThreshold = 0.1,
     this.sideContactTolerance = 0.05,
     this.sideOverlapThreshold = 0.1,
@@ -28,6 +33,9 @@ class AvailabilityConfig {
   });
 
   static const standard = AvailabilityConfig();
+
+  /// Classic rules with side blocking (kept for tests / alternative modes).
+  static const classic = AvailabilityConfig(sideBlocking: true);
 }
 
 /// Static geometric relationships derived purely from tile rectangles.
@@ -45,8 +53,8 @@ class TileRelations {
 ///   * it has not been removed, AND
 ///   * no remaining higher-layer tile overlaps it (by more than
 ///     [AvailabilityConfig.coverThreshold] on both axes), AND
-///   * its left side OR its right side is free of remaining same-layer
-///     neighbours.
+///   * only with [AvailabilityConfig.sideBlocking]: its left side OR its
+///     right side is free of remaining same-layer neighbours.
 ///
 /// Nothing in the game stores a mutable "selectable" flag – availability is
 /// always recomputed from the removal state.
@@ -77,7 +85,7 @@ class TileAvailabilityService {
               ra.overlapY(rb) > config.coverThreshold) {
             coveredBy[i].add(j);
           }
-        } else if (b.layer == a.layer) {
+        } else if (config.sideBlocking && b.layer == a.layer) {
           if (ra.overlapY(rb) <= config.sideOverlapThreshold) continue;
           // b touches a's left edge.
           if ((rb.right - ra.left).abs() <= config.sideContactTolerance &&

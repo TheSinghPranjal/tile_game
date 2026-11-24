@@ -175,6 +175,36 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('debug Auto button visibly solves the level', (tester) async {
+    final c = await _launch(tester);
+    await tester.tap(find.text('Play Level 1'));
+    await _pumpFor(tester, 900);
+    // Tests run in debug mode, so the debug-only button is present.
+    expect(kDebugMode, isTrue);
+    final auto = find.byKey(const ValueKey('debug-autoplay'));
+    expect(auto, findsOneWidget);
+    final pairs = c.read(gameControllerProvider).board!.length ~/ 2;
+
+    await tester.tap(auto);
+    await tester.pump();
+    expect(c.read(gameControllerProvider).autoPlaying, isTrue);
+    expect(find.text('Stop'), findsOneWidget);
+
+    // It selects tiles one at a time, like a player would.
+    var sawSelection = false;
+    for (var t = 0; t < pairs * 1200 + 2000; t += 50) {
+      await tester.pump(const Duration(milliseconds: 50));
+      if (c.read(gameControllerProvider).selected != null) sawSelection = true;
+      if (c.read(gameControllerProvider).phase == GamePhase.completed) break;
+    }
+    expect(sawSelection, isTrue);
+    expect(c.read(gameControllerProvider).phase, GamePhase.completed);
+    expect(c.read(gameControllerProvider).autoPlaying, isFalse);
+
+    await _pumpFor(tester, 1500); // let the auto-play loop wind down
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('hint highlights a legal pair', (tester) async {
     final c = await _launch(tester);
     await tester.tap(find.text('Play Level 1'));

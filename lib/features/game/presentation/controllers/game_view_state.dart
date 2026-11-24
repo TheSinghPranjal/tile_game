@@ -72,6 +72,9 @@ class GameViewState {
   final String? error;
   final bool busy;
 
+  /// Debug builds only: the game is solving the level by itself.
+  final bool autoPlaying;
+
   const GameViewState({
     this.phase = GamePhase.loading,
     this.levelNumber = 1,
@@ -91,6 +94,7 @@ class GameViewState {
     this.reward,
     this.error,
     this.busy = false,
+    this.autoPlaying = false,
   });
 
   BoardState? get board => session?.board;
@@ -140,6 +144,7 @@ class GameViewState {
     Object? reward = _unset,
     Object? error = _unset,
     bool? busy,
+    bool? autoPlaying,
   }) =>
       GameViewState(
         phase: phase ?? this.phase,
@@ -160,5 +165,6 @@ class GameViewState {
         reward: reward == _unset ? this.reward : reward as LevelReward?,
         error: error == _unset ? this.error : error as String?,
         busy: busy ?? this.busy,
+        autoPlaying: autoPlaying ?? this.autoPlaying,
       );
 }
